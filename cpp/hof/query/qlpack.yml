@@ -1,0 +1,7 @@
+---
+library: false
+warnOnImplicitThis: false
+name: query
+version: 0.0.1
+dependencies:
+  codeql/cpp-all: ^2.0.0
