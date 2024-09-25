@@ -37,8 +37,8 @@ database create qdb --language cpp`. More info also in this part of [the
 documentation](https://docs.github.com/en/code-security/codeql-cli/getting-started-with-the-codeql-cli/preparing-your-code-for-codeql-analysis).
 
 After the database has been created you can run a query. If our query is
-`testquery.ql` in the `query` pack, then run `codeql query run
-query/testquery.ql`.
+`print-all-flows.ql` in the `query` pack, then run `codeql query run
+../query/print-all-flows.ql`.
 
 ## Creating new queries
 
