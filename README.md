@@ -1,7 +1,7 @@
 ## Setup
 
 The following steps assume that you are using Apple-silicon MacOS and that you
-are installing the codeql bundle into a sbling directory of this repository
+are installing the codeql bundle into a sibling directory of this repository
 called `codeql-home`. I include links to the documentation where these steps
 originate from so you can adjust them if these assumptions don't hold for you.
 
