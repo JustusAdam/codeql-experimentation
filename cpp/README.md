@@ -11,3 +11,4 @@ Mostly the `simple-source-sink.ql` query.
 | `hof` | Data-flow involving a higher order function | ✅ |
 | `uninstantiated-template` | Analyzing templated entry points | ❌ |
 | `dynamic-dispatch` | Analyzing virtual function calls | ❌ |
+| `vector` | Dataflow through a vector element | ❌ |
