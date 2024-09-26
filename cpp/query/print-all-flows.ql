@@ -1,7 +1,5 @@
 /**
- * @id paralegal/comptest
- * @kind problem
- * @severity warning
+ * Prints all data flows found in the program.
  */
 
 import cpp

@@ -1,3 +1,8 @@
+/**
+ * Contains the configuration for how we evaluate dataflow and taint tracking
+ * in the simple examples.
+ */
+
 private import cpp
 import semmle.code.cpp.dataflow.new.DataFlow
 import semmle.code.cpp.dataflow.new.TaintTracking

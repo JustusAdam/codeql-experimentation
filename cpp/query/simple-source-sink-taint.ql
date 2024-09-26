@@ -1,7 +1,6 @@
 /**
- * @id paralegal/comptest
- * @kind problem
- * @severity warning
+ * Prints all taint flows from a direct function call to `source` to a direct
+ * function call to `target`.
  */
 
 import cpp

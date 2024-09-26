@@ -1,7 +1,5 @@
 /**
- * @id paralegal/comptest
- * @kind problem
- * @severity warning
+ * Prints all taint flows in the program.
  */
 
 import cpp
