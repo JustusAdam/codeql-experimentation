@@ -1,6 +1,15 @@
 /**
  * Contains the configuration for how we evaluate dataflow and taint tracking
  * in the simple examples.
+ *
+ * Codeql distinguishes between data flow and taint, though both analyses
+ * are parameterized over the same module signature (`isSource`, `isSink`, etc).
+ * Explanations as to the actual difference are found in
+ * [the documentation](https://codeql.github.com/docs/codeql-language-guides/analyzing-data-flow-in-cpp/#using-global-taint-tracking)
+ * but the gist is that if a dataflow query appears to exhibit a false negative,
+ * you should try rerunning it but replace all calls to dataflow with calls to
+ * taint tracking, using the same source/sink configuration. This should generally
+ * work as both the DataFlow and TaintTracking modules have the same API.
  */
 
 private import cpp
