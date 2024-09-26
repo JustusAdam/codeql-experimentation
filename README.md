@@ -42,7 +42,7 @@ After the database has been created you can run a query. If our query is
 
 ## Creating new queries
 
-The codeql executable can run single query files, hoever it appears that if you
+The codeql executable can run single query files, however it appears that if you
 want to use modules from the standard library (such as the `cpp` module) then
 you need to create a query pack. Extensive information is available in the
 [documentation](https://docs.github.com/en/code-security/codeql-cli/using-the-advanced-functionality-of-the-codeql-cli/creating-and-working-with-codeql-packs)
