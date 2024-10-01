@@ -13,10 +13,13 @@ import semmle.code.cpp.controlflow.ControlFlowGraph
 predicate is_user_data(Type t) {
   t.getName() = "Comment" and
   t.getName() = "User" and
-  t.getName() = "Post"
+  t.getName() = "Post" and
+  t.getName() = "Blog"
 }
 
-predicate is_delete(DataFlow::Node n) { n.asExpr().(FunctionCall).getTarget().getName() = "delete" }
+predicate is_delete(DataFlow::Node n) {
+  n.asExpr().(FunctionCall).getTarget().getName() = "deleteAny"
+}
 
 module SourceSinkCallConfig implements DataFlow::ConfigSig {
   predicate isSource(DataFlow::Node source) { is_user_data(source.asExpr().getType()) }
@@ -24,7 +27,7 @@ module SourceSinkCallConfig implements DataFlow::ConfigSig {
   predicate isSink(DataFlow::Node sink) { is_delete(sink) }
 }
 
-predicate is_root(Function n) { n.getName() = "delete_controller" }
+predicate is_root(Function n) { n.getName() = "deleteUserController" }
 
 predicate reachable_from_root(ControlFlowNode n) {
   reachable(n) and
