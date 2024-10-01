@@ -9,16 +9,23 @@ import cpp
 import semmle.code.cpp.dataflow.new.DataFlow
 import semmle.code.cpp.dataflow.new.TaintTracking
 import semmle.code.cpp.controlflow.ControlFlowGraph
+import semmle.code.cpp.ir.IR
 
-predicate is_user_data(Type t) {
-  t.getName() = "Comment" and
-  t.getName() = "User" and
-  t.getName() = "Post" and
-  t.getName() = "Blog"
+predicate is_user_data(Type outer) {
+  exists(Type t |
+    (
+      t.getName() = "Comment" or
+      t.getName() = "User" or
+      t.getName() = "Post" or
+      t.getName() = "Blog"
+    ) and
+    outer.refersTo(t)
+  )
 }
 
 predicate is_delete(DataFlow::Node n) {
-  n.asExpr().(FunctionCall).getTarget().getName() = "deleteAny"
+  n.asParameter().getFunction().getName().regexpMatch(".*deleteAny.*") and
+  n.asParameter().getIndex() = 0
 }
 
 module SourceSinkCallConfig implements DataFlow::ConfigSig {
@@ -44,9 +51,15 @@ predicate reachable_from_root(ControlFlowNode n) {
 
 module Taint = TaintTracking::Global<SourceSinkCallConfig>;
 
-from Type stored_data, DataFlow::Node retrieval, DataFlow::Node delete
-where
-  retrieval.asExpr().getType() = stored_data and
-  is_user_data(stored_data) and
-  (not Taint::flow(retrieval, delete) or not reachable_from_root(delete.asExpr()))
-select stored_data, retrieval, delete
+// from Type stored_data
+// where
+//   is_user_data(stored_data) and
+//   not exists(DataFlow::Node retrieval, DataFlow::Node delete |
+//     retrieval.asExpr().(FunctionCall).getExpectedReturnType().refersTo(stored_data) and
+//     Taint::flow(retrieval, delete) //or not reachable_from_root(delete.asExpr()))
+//   )
+// select stored_data
+from DataFlow::Node src, DataFlow::Node snk
+where Taint::flow(src, snk)
+//where delete.asExpr().(FunctionCall).getTarget().getName()
+select src, src.getType(), snk
