@@ -8,6 +8,7 @@ Mostly the `simple-source-sink.ql` query.
 | `simple-flow` | A simple, global data flow problem | ✅ |
 | `function-pointer` | Data-flow via a function pointer | ✅ |
 | `function-pointer-2` | Higher-order function with indirect assignment | ❌ |
+| `function-pointer-2-templatized` | `function-pointer-2` using templates for theoretically precise type (closer to Rust) | ❌ |
 | `hof` | Data-flow involving a higher order function | ✅ |
 | `uninstantiated-template` | Analyzing templated entry points | ❌ |
 | `dynamic-dispatch` | Analyzing virtual function calls | ❌ |
