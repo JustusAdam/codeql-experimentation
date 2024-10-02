@@ -14,4 +14,5 @@ Mostly the `simple-source-sink.ql` query.
 | `dynamic-dispatch` | Analyzing virtual function calls | ❌ |
 | `vector` | Dataflow through a vector element | ❌ |
 | `thread` | Marker behind `std::thread` | ❌ |
+| `context` | Attempting to get points-to contexts confused by layering functions | ✅ |
 | `plume` | Data deletion policy and application like Plume | ❌ |
