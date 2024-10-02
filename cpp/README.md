@@ -12,3 +12,5 @@ Mostly the `simple-source-sink.ql` query.
 | `uninstantiated-template` | Analyzing templated entry points | ❌ |
 | `dynamic-dispatch` | Analyzing virtual function calls | ❌ |
 | `vector` | Dataflow through a vector element | ❌ |
+| `thread` | Marker behind `std::thread` | ❌ |
+| `plume` | Data deletion policy and application like Plume | ❌ |
