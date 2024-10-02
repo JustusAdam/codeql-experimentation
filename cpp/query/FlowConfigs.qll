@@ -15,6 +15,20 @@
 private import cpp
 import semmle.code.cpp.dataflow.new.DataFlow
 import semmle.code.cpp.dataflow.new.TaintTracking
+import semmle.code.cpp.ir.IR
+
+predicate isTargetFunction(Function f) { f.getName() = "target" }
+
+predicate isTargetParameter(Parameter p) {
+  isTargetFunction(p.getFunction()) and
+  p.getIndex() = 0
+}
+
+predicate isTargetOperand(Operand o) {
+  o.getUse().(CallInstruction).getStaticCallTarget().getName() = "target"
+}
+
+predicate isSourceCall(Expr e) { e.(FunctionCall).getTarget().getName() = "source" }
 
 module AllFlowsConfig implements DataFlow::ConfigSig {
   predicate isSource(DataFlow::Node source) { any() }
@@ -23,12 +37,20 @@ module AllFlowsConfig implements DataFlow::ConfigSig {
 }
 
 module SourceSinkCallConfig implements DataFlow::ConfigSig {
-  predicate isSource(DataFlow::Node source) {
-    source.asExpr().(FunctionCall).getTarget().getName() = "source"
-  }
+  predicate isSource(DataFlow::Node source) { isSourceCall(source.asExpr()) }
 
   predicate isSink(DataFlow::Node sink) {
-    sink.asExpr().(FunctionCall).getTarget().getName() = "target"
+    isTargetOperand(sink.asOperand())
+    //isTargetFunction(sink.asExpr().(FunctionCall).getTarget())
+    //isTargetParameter(sink.asParameter())
+  }
+}
+
+module SourceToConditional implements DataFlow::ConfigSig {
+  predicate isSource(DataFlow::Node source) { isSourceCall(source.asExpr()) }
+
+  predicate isSink(DataFlow::Node sink) {
+    sink.asOperand().getUse() instanceof ConditionalBranchInstruction
   }
 }
 
