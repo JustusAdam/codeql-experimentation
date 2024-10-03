@@ -24,8 +24,8 @@ predicate isTargetParameter(Parameter p) {
   p.getIndex() = 0
 }
 
-predicate isTargetOperand(Operand o) {
-  o.getUse().(CallInstruction).getStaticCallTarget().getName() = "target"
+predicate isTargetOperand(Expr o) {
+  exists(FunctionCall call | call.getTarget().getName() = "target" and call.getArgument(0) = o)
 }
 
 predicate isSourceCall(Expr e) { e.(FunctionCall).getTarget().getName() = "source" }
@@ -40,7 +40,7 @@ module SourceSinkCallConfig implements DataFlow::ConfigSig {
   predicate isSource(DataFlow::Node source) { isSourceCall(source.asExpr()) }
 
   predicate isSink(DataFlow::Node sink) {
-    isTargetOperand(sink.asOperand())
+    isTargetOperand(sink.asExpr())
     //isTargetFunction(sink.asExpr().(FunctionCall).getTarget())
     //isTargetParameter(sink.asParameter())
   }
