@@ -23,6 +23,8 @@ predicate is_user_data(Type outer) {
   )
 }
 
+// It is fine to use `Parameter` here, because the source of the function is in
+// scope and so we see the parameter.
 predicate is_delete(DataFlow::Node n) {
   n.asParameter().getFunction().getName().regexpMatch(".*deleteAny.*") and
   n.asParameter().getIndex() = 0
@@ -59,7 +61,7 @@ module Taint = TaintTracking::Global<SourceSinkCallConfig>;
 //     Taint::flow(retrieval, delete) //or not reachable_from_root(delete.asExpr()))
 //   )
 // select stored_data
-from DataFlow::Node src, DataFlow::Node snk
-where Taint::flow(src, snk)
+from DataFlow::Node source, DataFlow::Node sink
+where Taint::flow(source, sink)
 //where delete.asExpr().(FunctionCall).getTarget().getName()
-select src, src.getType(), snk
+select source, source.getType(), sink
