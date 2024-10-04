@@ -11,14 +11,14 @@ predicate isAdditionalFlowStepImpl(DataFlow::Node node1, DataFlow::Node node2) {
       or
       exists(DataFlow::Node ptr, DataFlow::Node result_ptr |
         ptr.asExpr() = thread.getArgument(1) and
-        ptr.asIndirectExpr() = node1.asIndirectExpr() and
+        ptr.asIndirectExpr() = node1.asExpr() and
         is_a_function_parameter(result_ptr) and
         result_ptr.asIndirectExpr() = node2.asExpr()
       )
       or
       exists(DataFlow::Node ptr, DataFlow::Node result_ptr |
         ptr.asExpr() = thread.getArgument(1) and
-        ptr.asIndirectExpr() = node2.asIndirectExpr() and
+        ptr.asIndirectExpr() = node2.asExpr() and
         is_a_function_parameter(result_ptr) and
         result_ptr.asIndirectExpr() = node1.asExpr()
       )
@@ -60,13 +60,13 @@ module Flow = TaintTracking::Global<MyConfig>;
 module Flow2 = TaintTracking::Global<MyConfig2>;
 
 from DataFlow::Node node1, DataFlow::Node node2, string message
-where
-  if Flow::flow(node1, node2)
-  then message = "to sink"
-  else (
-    Flow2::flow(node1, node2) and
-    message = "from source"
-  )
+where isAdditionalFlowStepImpl(node1, node2) and message = "placeholder"
+//   if Flow::flow(node1, node2)
+//   then message = "to sink"
+//   else (
+//     Flow2::flow(node1, node2) and
+//     message = "from source"
+//   )
 //source.asOperand().getUse().(CallInstruction).getStaticCallTarget().getName() = "thread" // and
 //source.asOperand().(PositionalArgumentOperand).getIndex() > 0
 //source.getFunction().getName() = "a_function"

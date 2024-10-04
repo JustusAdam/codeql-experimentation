@@ -17,10 +17,10 @@ int target(int source)
 
 int main(int argv, char **argc)
 {
-    int result;
-    std::thread t(a_function, &result);
+    int outer_result;
+    std::thread t(a_function, &outer_result);
     t.join();
-    target(result);
+    target(outer_result);
 
     return 0;
 }
