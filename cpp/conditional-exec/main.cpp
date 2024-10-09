@@ -16,7 +16,7 @@ int target(int source)
 
 int main(int argv, char **argc)
 {
-    if source() {
+    if (source()) {
         target(1);
     }
 
