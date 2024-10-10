@@ -15,5 +15,14 @@ Mostly the `simple-source-sink.ql` query.
 | `vector` | Dataflow through a vector element | ❌ |
 | `thread` | Marker behind `std::thread` | ❌ |
 | `context` | Attempting to get points-to contexts confused by layering functions | ✅ |
-| `plume` | Data deletion policy and application like Plume | ❌ |
-| `lemmy-instance` | The lemmy instance policy | ✅ |
+
+## For our policies
+
+| Application | Policy | Result | Folder | Query |
+|-|-|-|-|-|
+| Plume | Data Deletion | ❌ | `plume` | `plume-data-deletion.ql` |
+| Lemmy | Instance Ban/Delete | ✅ | `lemmy` | `lemmy-instance.ql` |
+| Atomic | Authorization | ? | `atomic` | `atomic.ql` |
+
+We presume the Lemmy Community policy would also succeed, as it is virtually the
+same as the instance policy.
