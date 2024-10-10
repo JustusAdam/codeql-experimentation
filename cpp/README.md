@@ -16,3 +16,4 @@ Mostly the `simple-source-sink.ql` query.
 | `thread` | Marker behind `std::thread` | ❌ |
 | `context` | Attempting to get points-to contexts confused by layering functions | ✅ |
 | `plume` | Data deletion policy and application like Plume | ❌ |
+| `lemmy-instance` | The lemmy instance policy | ✅ |
