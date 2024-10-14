@@ -85,6 +85,14 @@ void checkRegistrationApplication(Site& site, LocalUserView& local_user_view, Da
     // Implement registration application check logic here
 }
 
+void check_user_valid(LocalUserView& local_user_view) {
+    if (local_user_view.person.banned ||
+        (local_user_view.person.ban_expires && *local_user_view.person.ban_expires > time(nullptr)) ||
+        local_user_view.person.deleted) {
+        throw LemmyError("user_not_valid");
+    }
+}
+
 class Login {
 public:
     string username_or_email;
@@ -101,12 +109,14 @@ public:
         }
 
         // Check if user is valid
-        if (local_user_view.person.banned ||
-            (local_user_view.person.ban_expires && *local_user_view.person.ban_expires > time(nullptr)) ||
-            local_user_view.person.deleted) {
-            throw LemmyError("user_not_valid");
-            //printf("user_not_valid\n");
-        }
+        // if (local_user_view.person.banned ||
+        //     (local_user_view.person.ban_expires && *local_user_view.person.ban_expires > time(nullptr)) ||
+        //     local_user_view.person.deleted) {
+        //     throw LemmyError("user_not_valid");
+        //     //printf("user_not_valid\n");
+        // }
+
+        check_user_valid(local_user_view);
 
         Site site;
         context->getDBConnection().readLocalSite(site);
