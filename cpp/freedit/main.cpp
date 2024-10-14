@@ -6,20 +6,29 @@
 #include <algorithm>
 #include <cstdint>
 #include <sstream>
+#include <cctype>
+#include <iomanip>
 
+#include "flib/flib.hpp"
 
 // Struct for PostContent
 struct PostContent {
     struct Markdown {
         std::string content;
         Markdown(const std::string& c) : content(c) {}
+        Markdown() = default;
     };
     // Other potential variants...
 };
 
 // Forward declarations for classes/structs
 template<typename C>
-class TypedHeader {};
+class TypedHeader {
+public:
+    std::optional<std::string> get(const std::string& key) const {
+        return "";
+    }
+};
 class Cookie {};
 class FormPost {
 public:
@@ -55,6 +64,11 @@ public:
     PostContent::Markdown content;
     int64_t created_at;
     PostStatus status;
+
+    Post() {}
+
+    Post(uint32_t pid, uint32_t uid, uint32_t iid, const std::string& title, const std::vector<std::string>& tags, const PostContent::Markdown& content, int64_t created_at, PostStatus status)
+        : pid(pid), uid(uid), iid(iid), title(title), tags(tags), content(content), created_at(created_at), status(status) {}
 };
 class User;
 class Database;
@@ -69,53 +83,134 @@ enum class NtType {
     PostMention,
 };
 
+std::string COOKIE_NAME = "";
+
 // Forward declarations for functions
-std::vector<uint8_t> u32_to_ivec(uint32_t value);
-uint32_t u8_slice_to_u32(const std::vector<uint8_t>& slice);
+
+std::string trim(const std::string& str) {
+    std::string result(str);
+    result.erase(0, result.find_first_not_of(" \t\n\r\f\v"));
+    result.erase(result.find_last_not_of(" \t\n\r\f\v") + 1);
+    return result;
+}
+
+template<typename T, typename K>
+T get_one_by_key(Database& db, const std::string& tree, const K& key) {
+    auto res = db.open_tree(tree)->get(key);
+    if (!res.has_value()) {
+        throw AppError("not found");
+    }
+    std::optional<T> deser = deserialize<T>(res.value());
+    if (deser.has_value()) {
+        return deser.value();
+    } else {
+        throw AppError("deserialize failed");
+    }
+}
 
 template<typename T>
-T get_one(const Database& db, const std::string& tree, uint32_t id);
+T get_one(Database& db, const std::string& tree, uint32_t id) {
+    return get_one_by_key<T, std::vector<uint8_t>>(db, tree, u32_to_ivec(id));
+}
+
 
 template<typename T>
-void set_one(Database& db, const std::string& tree, uint32_t id, const T& value);
+void set_one(Database& db, const std::string& tree, uint32_t id, const T& value) {
+    set_one_with_key(db, tree, u32_to_ivec(id), value);
+}
 
-void set_one_with_key(Database& db, const std::string& tree, const std::vector<uint8_t>& key, const void* value);
+template<typename T>
+void set_one_with_key(Database& db, const std::string& tree, const std::vector<uint8_t>& key, const T value) {
+    db.open_tree(tree)->set(key, serialize(value));
+}
 
-uint32_t incr_id(Database& db, const std::string& counter);
+std::optional<std::vector<uint8_t>> increment(std::optional<std::vector<uint8_t>> value) {
+    if (value.has_value()) {
+        std::optional<uint32_t> deser = deserialize<uint32_t>(value.value());
+        if (deser.has_value()) {
+            uint32_t v = deser.value() + 1;
+            return serialize(v);
+        }
+    }
+    return std::nullopt;
+}
 
-std::optional<uint32_t> get_id_by_name(const Database& db, const std::string& tree, const std::string& name);
+uint32_t incr_id(Database::Tree& tree, const std::string& counter) {
+    auto ser = tree.update_and_fetch(std::vector<uint8_t>(counter.begin(), counter.end()), increment);
+    if (ser.has_value()) {
+        std::optional<uint32_t> deser = deserialize<uint32_t>(ser.value());
+        if (deser.has_value()) {
+            return deser.value();
+        }
+    }
+    throw AppError("failed to increment id");
+}
 
-void add_notification(Database& db, uint32_t uid, NtType type, uint32_t pid, uint32_t cid);
+std::optional<uint32_t> get_id_by_name(Database& db, const std::string& tree, const std::string& name) {
+    std::string name_2(name);
+    name_2.replace(name_2.begin(), name_2.end(), " ", "_");
+    std::transform(name_2.begin(), name_2.end(), name_2.begin(), tolower);
+    auto res = db.open_tree(tree)->get(std::vector<uint8_t>(name_2.begin(), name_2.end()));
+    if (res.has_value()) {
+        return deserialize<uint32_t>(res.value());
+    } else {
+        return std::nullopt;
+    }
+}
 
-std::vector<std::string> extract_element(const std::string& content, size_t max_count, char delimiter);
+void add_notification(Database& db, uint32_t uid, NtType type, uint32_t pid, uint32_t cid) {
+    auto nid = incr_id(*db.open_tree("default"), "notifications_count");
+    std::vector<uint8_t> k = u32_to_ivec(uid);
+    auto nid_v = u32_to_ivec(nid);
+    k.insert(k.end(), nid_v.begin(), nid_v.end());
+    auto t_v = u32_to_ivec(static_cast<uint8_t>(type));
+    k.insert(t_v.end(), t_v.begin(), t_v.end());
+    
+    auto v = u32_to_ivec(pid);
+    auto cid_v = u32_to_ivec(cid);
+    v.insert(v.end(), cid_v.begin(), cid_v.end());
+    std::vector<uint8_t> zero = u32_to_ivec(0);
+    v.insert(v.end(), zero.begin(), zero.end());
+    db.open_tree("notifications")->insert(k, v);
+}
 
-// Batch class (assuming it's similar to a transaction or a set of operations)
-class Batch {
-public:
-    void remove(const std::vector<uint8_t>& key);
-    void insert(const std::vector<uint8_t>& key, const std::vector<uint8_t>& value);
-};
+std::vector<std::string> extract_element(const std::string& input, size_t max_len, char delimiter) {
+    std::vector<std::string> result;
+    std::istringstream iss(input);
+    std::string token;
 
-// Database class methods
-class Database {
-public:
-    class Tree {
-    public:
-        void remove(const std::vector<uint8_t>& key);
-        void insert(const std::string& key, const std::vector<uint8_t>& value);
-        void insert(const std::vector<uint8_t>& key, const std::vector<uint8_t>& value);
-        void apply_batch(const Batch& batch);
-    };
+    std::getline(iss, token, delimiter);
 
-    std::shared_ptr<Tree> open_tree(const std::string& name);
-};
+    while (std::getline(iss, token, delimiter)) {
+        if (token.empty()) continue;
+
+        size_t space_pos = token.find(' ');
+        if (space_pos != std::string::npos) {
+            std::string tag = token.substr(0, space_pos);
+            if (!tag.empty() && tag.length() <= 25) {
+                result.push_back(tag);
+                if (result.size() >= max_len) {
+                    break;
+                }
+            }
+        }
+    }
+
+    return result;
+}
 
 Database DB;
 
 // Additional method declarations
 class User {
 public: 
-    static void update_stats(Database& db, uint32_t uid, const std::string& action);
+    static void update_stats(Database& db, uint32_t uid, const std::string& action) {
+        const auto now = std::chrono::system_clock::now();
+        std::time_t t = std::chrono::system_clock::to_time_t(now);
+        std::ostringstream key;
+        key << std::put_time(std::localtime(&t), "%Y-%m-%d %H:%M:%S") << "_" << uid << "_" << action;
+        incr_id(*db.open_tree("user_stats"), key.str());
+    }
     static bool is_mod(const Database& db, uint32_t uid, uint32_t iid);
     static bool has_unread(const Database& db, uint32_t uid);
     std::string username;
@@ -124,24 +219,91 @@ public:
 // Method declarations for Claim
 class Claim {
 public:
-    static std::optional<Claim> get(const Database& db, const TypedHeader<Cookie>& cookie, const SiteConfig& config);
+    static std::optional<Claim> get(Database& db, const TypedHeader<Cookie>& cookie, const SiteConfig& config);
     void update_last_write(Database& db);
 
     uint32_t uid;
     int64_t last_write;
+    uint32_t role;
+    uint32_t session_id;
 };
 
 // Method declarations for SiteConfig
 class SiteConfig {
 public:
-    static SiteConfig get(const Database& db);
+    static SiteConfig get(Database& db) {
+        std::string key = "site_config";
+        std::optional<std::vector<uint8_t>> v = db.open_tree("default")->get(std::vector<uint8_t>(key.begin(), key.end()));
+        if (v.has_value()) {
+            auto deser = deserialize<SiteConfig>(v.value());
+            if (deser.has_value()) {
+                return deser.value();
+            }
+        }
+        return SiteConfig();
+    }
     int64_t post_interval;
     size_t per_page;
+    bool read_only;
+
+    SiteConfig() = default;
 };
 
 
-static std::optional<InnRole> get_inn_role(const Database& db, uint32_t iid, uint32_t uid);
+static std::optional<InnRole> get_inn_role(Database& db, uint32_t iid, uint32_t uid) {
+    auto tree = db.open_tree("inn_users");
+    auto v = u32_to_ivec(iid);
+    auto uid_v = u32_to_ivec(uid);
+    v.insert(v.end(), uid_v.begin(), uid_v.end());
+    auto val = tree->get(v);
+    if (val.has_value()) {
+        return deserialize<InnRole>(val.value());
+    }
+    return std::nullopt;
+}
 
+std::optional<Claim> Claim::get(Database& db, const TypedHeader<Cookie>& cookie, const SiteConfig& site_config) {
+    auto o_session = cookie.get(COOKIE_NAME);
+    if (!o_session.has_value()) {
+        return std::nullopt;
+    }
+
+    auto session = o_session.value();
+
+    auto end = session.find('_');
+    if (end == std::string::npos) {
+        return std::nullopt;
+    }
+    std::string timestamp_s(session.begin(), session.begin() + end);
+    auto tree = db.open_tree("session");
+
+    int64_t timestamp = std::stoll(timestamp_s);
+
+    auto now = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    if (now > timestamp) {
+        return std::nullopt;
+    }
+
+    auto v = tree->get(std::vector<uint8_t>(session.begin(), session.end()));
+    if (!v.has_value()) {
+        return std::nullopt;
+    }
+
+    auto claim = deserialize<Claim>(v.value());
+
+    if (site_config.read_only && claim->role != 0) {
+        return std::nullopt;
+    }
+    if (claim->role == 3) {
+        return std::nullopt;
+    }
+    return claim;
+}
+
+void Claim::update_last_write(Database& db) {
+    this->last_write = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    set_one_with_key(db, "sessions", u32_to_ivec(this->session_id), *this);
+}
 
 // inn_add_index function
 void inn_add_index(Database& DB, uint32_t iid, uint32_t pid, uint32_t created_at, uint32_t visibility) {
@@ -173,8 +335,6 @@ std::optional<AppError> inn_rm_index(Database& DB, uint32_t iid, uint32_t pid) {
         return AppError("inn_rm_index error: " + std::string(e.what()));
     }
 }
-
-std::string trim(std::string input);
 
 void replace_all(std::string& str, const std::string& from, const std::string& to) {
     size_t start_pos = 0;
@@ -230,7 +390,7 @@ std::optional<std::string> edit_post_post(
 
     Inn inn = get_one<Inn>(DB, "inns", iid);
 
-    uint32_t pid = (old_pid == 0) ? incr_id(DB, "posts_count") : old_pid;
+    uint32_t pid = (old_pid == 0) ? incr_id(*DB.open_tree("default"), "posts_count") : old_pid;
     std::vector<uint8_t> pid_ivec = u32_to_ivec(pid);
 
     std::vector<std::string> tags;
