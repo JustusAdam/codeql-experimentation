@@ -29,9 +29,9 @@ int main(int argv, char **argc)
     // 
     // Does not work
 
-    std::vector<int> v = { 0 };
-    v[0] = source();
-    return target(v[0]);
+    // std::vector<int> v = { 0 };
+    // v[0] = source();
+    // return target(v[0]);
 
     // push back version
     // 
@@ -39,5 +39,11 @@ int main(int argv, char **argc)
 
     // std::vector<int> v;
     // v.push_back(source());
-    // return target(v[0]);
+    // auto elem = v[0];
+    // return target(elem);
+
+    std::vector<int> v;
+    v.push_back(source());
+    auto elem = v.at(0);
+    return target(elem);
 }
