@@ -47,7 +47,7 @@ public:
 class DatabaseConnection {
 public:
     // Dummy methods for database interactions
-    void readLocalSite(Site& site) {
+    Site readLocalSite() {
         // Implement logic to read site data from the database
     }
 
@@ -93,6 +93,10 @@ void check_user_valid(LocalUserView& local_user_view) {
     }
 }
 
+Site getSite(LemmyContext& context) {
+    return context.getDBConnection().readLocalSite();
+}
+
 class Login {
 public:
     string username_or_email;
@@ -109,17 +113,17 @@ public:
         }
 
         // Check if user is valid
-        // if (local_user_view.person.banned ||
-        //     (local_user_view.person.ban_expires && *local_user_view.person.ban_expires > time(nullptr)) ||
-        //     local_user_view.person.deleted) {
-        //     throw LemmyError("user_not_valid");
-        //     //printf("user_not_valid\n");
-        // }
+        if (local_user_view.person.banned ||
+            (local_user_view.person.ban_expires && *local_user_view.person.ban_expires > time(nullptr)) ||
+            local_user_view.person.deleted) {
+            throw LemmyError("user_not_valid");
+            //printf("user_not_valid\n");
+        }
 
-        check_user_valid(local_user_view);
+        //check_user_valid(local_user_view);
 
-        Site site;
-        context->getDBConnection().readLocalSite(site);
+        //Site site = context->getDBConnection().readLocalSite();
+        Site site = getSite(*context);
 
         if (site.require_email_verification && !local_user_view.local_user.email_verified) {
             throw LemmyError("email_not_verified");
