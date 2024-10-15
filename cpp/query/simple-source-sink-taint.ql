@@ -23,6 +23,7 @@ module AllFlows = PrintTaint;
 //   isSourceCall(src.asExpr()) and
 //   AllFlows::flow(src, target)
 // select target // last, last.getLocation()
+//
 from DataFlow::Node source, DataFlow::Node sink
-where SourceSinkCallTaint::flow(source, sink) //and source != sink
+where SourceSinkCallTaint::flow(source, sink)
 select source, source.asExpr().getAPrimaryQlClass(), sink, sink.asExpr().getAPrimaryQlClass()
