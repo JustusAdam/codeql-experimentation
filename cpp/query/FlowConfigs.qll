@@ -25,7 +25,7 @@ predicate isTargetParameter(Parameter p) {
 }
 
 predicate isTargetOperand(Expr o) {
-  exists(FunctionCall call | call.getTarget().getName() = "target" and call.getArgument(0) = o)
+  exists(FunctionCall call | isTargetFunction(call.getTarget()) and call.getArgument(0) = o)
 }
 
 predicate isSourceCall(Expr e) { e.(FunctionCall).getTarget().getName() = "source" }
