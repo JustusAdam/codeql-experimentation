@@ -14,10 +14,19 @@ int target(int source)
     return source;
 }
 
+int target2(int input)
+{
+    return input;
+}
+
 int main(int argv, char **argc)
 {
-    if (source()) {
-        target(1);
+    switch (source()) {
+        case true:
+            target(1);
+            break;
+        default:
+            target2(2);
     }
 
     return 0;
