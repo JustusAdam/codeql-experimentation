@@ -1,6 +1,5 @@
-// Scope: 
+// Scope:
 // Everywhere
-
 // Definitions:
 // 1. "stored_resource" is each "resource" marked resource where:
 //     A. There is a "commit" marked commit where:
@@ -8,14 +7,12 @@
 //     and
 //     B. There is a "store" marked sink where:
 //         a. "resource" goes to "store"
-
 // 2. "set_new_resource_properties" is each "set_permissions" marked new_resource where:
 //     A. There is a "stored_resource" where:
 //         a. For each "get_parent_permissions" marked parent_property:
 //             i) "stored_resource" does not go to "get_parent_permissions"
 //         and
 //         b. "stored_resource" goes to "set_permissions"
-
 // Policy:
 // 1. For each "set_new_resource_properties":
 //     A. For each "stored_resource":
@@ -24,20 +21,63 @@
 //                 A) "stored_resource" goes to "auth_check"
 //                 and
 //                 B) "auth_check" affects whether "set_new_resource_properties" happens
+import cpp
+import semmle.code.cpp.dataflow.new.TaintTracking
 
-from DataFlow::Node stored_resource, DataFlow::Node resource, DataFlow::Node commit,
-    DataFlow::Node set_new_resource_properties, DataFlow::Node set_permissions,
-    
+predicate is_resource(Expr e) {
+  //   exists(FunctionCall c |
+  //     c.getQualifier() = e and
+  //     c.getTarget().getName() = "set_propval"
+  // )
+  e.(FunctionCall).getTarget().getName() = "set_propval"
+}
 
+predicate is_commit(Expr e) {
+  (e instanceof ThisExpr or e instanceof ImplicitThisFieldAccess) and
+  e.getEnclosingFunction().getName() = "apply_opts"
+}
+
+predicate is_check_rights(Expr e) { e.(FunctionCall).getTarget().getName() = "check_write" }
+
+predicate is_sink(Expr e) {
+  exists(FunctionCall c | c.getArgument(0) = e and c.getTarget().getName() = "add_resource")
+}
+
+// Sanity: highlights marked objects
+//
+// from Expr e, string message
+// where
+//   is_resource(e) and message = "stored resource"
+//   or
+//   is_commit(e) and message = "commit"
+//   or
+//   is_check_rights(e) and message = "check rights"
+//   or
+//   is_sink(e) and message = "sink"
+// select e, message
+module AllFlowsConfig implements DataFlow::ConfigSig {
+  predicate isSource(DataFlow::Node n) { any() }
+
+  predicate isSink(DataFlow::Node n) { any() }
+}
+
+module Flows = TaintTracking::Global<AllFlowsConfig>;
+
+//
+// from DataFlow::Node commit, DataFlow::Node resource
+// where
+//   is_commit(commit.asExpr()) and
+//   is_resource(resource.asExpr()) and
+//   Flows::flow(commit, resource) and
+//   commit.getLocation().getFile().getBaseName() = "main.cpp"
+// select commit, resource
+//
+//     B. There is a "store" marked sink where:
+//         a. "resource" goes to "store"
+//
+from DataFlow::Node store, DataFlow::Node resource
 where
-    stored_resource = resource and
-    Flow1::flow(commit, resource) and
-
-    (if SetPropFlow::flow(stored_resource, set_new_resource_properties) 
-    then exists(DataFlow::Node auth_check | 
-            AuthFlow::flow()
-        )
-
-    )
-
-select set_new_resource_properties, stored_resource
+  is_sink(store.asExpr()) and
+  is_resource(resource.asExpr()) and
+  Flows::flow(store, resource)
+select resource, store

@@ -70,6 +70,16 @@ public:
     }
 };
 
+
+class Storelike {
+public: 
+    virtual std::string get_base_url() = 0;
+    virtual std::optional<std::string> get_self_url() = 0;
+    virtual void add_resource(const std::shared_ptr<Resource>& resource) = 0;
+    virtual void remove_resource(const std::string& url) = 0;
+    virtual std::optional<Resource> get_resource(const std::string& url) = 0;
+};
+
 bool check_write(
     const std::shared_ptr<Storelike>& store,
     const std::shared_ptr<Resource>& resource,

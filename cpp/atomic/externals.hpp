@@ -23,32 +23,32 @@ namespace ring::signature {
     Algorithm ED25519;
 }
 
-class Storelike {
-    std::string base_url;
-    std::optional<std::string> self_url;
-    std::unordered_map<std::string, std::shared_ptr<Resource>> resources;
-public: 
-    std::string& get_base_url() {
-        return base_url;
-    }
+// class Storelike {
+//     std::string base_url;
+//     std::optional<std::string> self_url;
+//     std::unordered_map<std::string, std::shared_ptr<Resource>> resources;
+// public: 
+//     std::string& get_base_url() {
+//         return base_url;
+//     }
 
-    std::optional<std::string>& get_self_url() {
-        return self_url;
-    }
+//     std::optional<std::string>& get_self_url() {
+//         return self_url;
+//     }
 
-    void add_resource(const std::shared_ptr<Resource>& resource) {
-        resources[resource->url] = resource;
-    }
+//     void add_resource(const std::shared_ptr<Resource>& resource) {
+//         resources[resource->url] = resource;
+//     }
 
-    void remove_resource(const std::string& url) {
-        resources.erase(url);
-    }
+//     void remove_resource(const std::string& url) {
+//         resources.erase(url);
+//     }
 
-    std::optional<Resource> get_resource(const std::string& url) {
-        auto it = resources.find(url);
-        if (it != resources.end()) {
-            return *it->second;
-        }
-        return std::nullopt;
-    }
-};
+//     std::optional<Resource> get_resource(const std::string& url) {
+//         auto it = resources.find(url);
+//         if (it != resources.end()) {
+//             return *it->second;
+//         }
+//         return std::nullopt;
+//     }
+// };
