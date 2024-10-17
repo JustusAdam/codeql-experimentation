@@ -8,7 +8,7 @@ import FlowConfigs
 
 module AllFlows = PrintTaint;
 
-// Print reaching sources
+// Print what reaches the sink
 // from DataFlow::Node src, DataFlow::Node target //, DataFlow::Node last
 // where
 //   //src.getLocation().getFile().getBaseName() = "main.cpp" and
@@ -16,7 +16,7 @@ module AllFlows = PrintTaint;
 //   AllFlows::flow(src, target)
 // select src // last, last.getLocation()
 //
-// Print reached sinks
+// Print where sources go
 // from DataFlow::Node src, DataFlow::Node target //, DataFlow::Node last
 // where
 //   src.getLocation().getFile().getBaseName() = "main.cpp" and
@@ -26,4 +26,5 @@ module AllFlows = PrintTaint;
 //
 from DataFlow::Node source, DataFlow::Node sink
 where SourceSinkCallTaint::flow(source, sink)
-select source, source.asExpr().getAPrimaryQlClass(), sink, sink.asExpr().getAPrimaryQlClass()
+select source, //source.asExpr().getAPrimaryQlClass(),
+  sink //, sink.asExpr().getAPrimaryQlClass()

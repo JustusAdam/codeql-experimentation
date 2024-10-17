@@ -2,6 +2,12 @@
 
 #include <iostream>
 
-void library_function() {
+__attribute__((noinline))
+int hidden_function(int input) {
   std::cout << "hello from library function!" << std::endl;
+  return input;
+}
+
+int library_function(int input) {
+  return hidden_function(input);
 }

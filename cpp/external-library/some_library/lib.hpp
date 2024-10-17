@@ -1,1 +1,1 @@
-void library_function();
+int library_function(int input);
