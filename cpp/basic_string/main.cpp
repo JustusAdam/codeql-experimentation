@@ -15,7 +15,10 @@ int target(std::string source)
 int main(int argv, char **argc)
 {
     // In this case the call `source()` is not present as an expression in
-    // codeql
+    // codeql.
+    //
+    // Refactoring into separate variable bindings makes the call appear, but
+    // the taint is lost at the `static_cast`.
     std::string s = { static_cast<char>(source())};
     return target(s);
 }
