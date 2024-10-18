@@ -1,0 +1,4 @@
+name: local/query-tests
+dependencies:
+  local/query: ${workspace}
+extractor: cpp

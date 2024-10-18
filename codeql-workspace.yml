@@ -1,0 +1,4 @@
+provide:
+  - "query/qlpack.yml"
+  - "cpp/qlpack.yml"
+  - "real-world-policies/qlpack.yml"
