@@ -32,6 +32,10 @@ predicate is_delete(DataFlow::Node n) {
   n.asParameter().getIndex() = 0
 }
 
+predicate is_db_method(Function f) {
+  f.getName().regexpMatch("findForAuthor|getPost|findFollowedBy|listByAuthor|forUser")
+}
+
 module SourceSinkCallConfig implements DataFlow::ConfigSig {
   predicate isSource(DataFlow::Node source) { is_user_data(source.getType()) }
 
@@ -90,3 +94,15 @@ module AllTaint = TaintTracking::Global<AllConfig>;
 //   f = snk.asParameter().getFunction() and
 //   src.getEnclosingCallable().getName() = "deleteUserController"
 // select t, src, snk
+//
+// This tests that actually the database calls don't flow to the delete.
+// from Type user_data, FunctionCall f, DataFlow::Node source, DataFlow::Node sink
+// where
+//   is_user_data_direct(user_data) and
+//   source.getEnclosingCallable().getName() = "deleteUserController" and
+//   source.asExpr() = f and
+//   source.getType().refersTo(user_data)
+// // and
+// // Taint::flow(source, sink)
+// //where delete.asExpr().(FunctionCall).getTarget().getName()
+// select user_data, f
