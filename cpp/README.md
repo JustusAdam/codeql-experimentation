@@ -15,6 +15,8 @@ Mostly the `simple-source-sink.ql` query.
 | `vector` | Dataflow through a vector element | ❌ |
 | `thread` | Marker behind `std::thread` | ❌ |
 | `context` | Attempting to get points-to contexts confused by layering functions | ✅ |
+| `basic_string` | integer flows into string (via cast to char) | ❌ |
+| `basic_string_write` | integer written to `stringstream` | ✅ |
 
 ## For our policies
 
