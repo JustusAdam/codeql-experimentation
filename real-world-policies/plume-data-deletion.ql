@@ -13,14 +13,16 @@ import semmle.code.cpp.ir.IR
 
 predicate is_user_data(Type outer) {
   exists(Type t |
-    (
-      t.getName() = "Comment" or
-      t.getName() = "User" or
-      t.getName() = "Post" or
-      t.getName() = "Blog"
-    ) and
+    is_user_data_direct(t) and
     outer.refersTo(t)
   )
+}
+
+predicate is_user_data_direct(Type t) {
+  t.getName() = "Comment" or
+  t.getName() = "User" or
+  t.getName() = "Post" or
+  t.getName() = "Blog"
 }
 
 // It is fine to use `Parameter` here, because the source of the function is in
@@ -31,7 +33,7 @@ predicate is_delete(DataFlow::Node n) {
 }
 
 module SourceSinkCallConfig implements DataFlow::ConfigSig {
-  predicate isSource(DataFlow::Node source) { is_user_data(source.asExpr().getType()) }
+  predicate isSource(DataFlow::Node source) { is_user_data(source.getType()) }
 
   predicate isSink(DataFlow::Node sink) { is_delete(sink) }
 }
@@ -61,7 +63,30 @@ module Taint = TaintTracking::Global<SourceSinkCallConfig>;
 //     Taint::flow(retrieval, delete) //or not reachable_from_root(delete.asExpr()))
 //   )
 // select stored_data
-from DataFlow::Node source, DataFlow::Node sink
-where Taint::flow(source, sink)
+from Type user_data
+where
+  is_user_data_direct(user_data) and
+  not exists(DataFlow::Node source, DataFlow::Node sink |
+    source.getEnclosingCallable().getName() = "deleteUserController" and
+    source.getType().refersTo(user_data) and
+    Taint::flow(source, sink)
+  )
 //where delete.asExpr().(FunctionCall).getTarget().getName()
-select source, source.getType(), sink
+select user_data
+
+module AllConfig implements DataFlow::ConfigSig {
+  predicate isSource(DataFlow::Node source) { any() }
+
+  predicate isSink(DataFlow::Node sink) { any() }
+}
+
+module AllTaint = TaintTracking::Global<AllConfig>;
+// from DataFlow::Node src, DataFlow::Node snk, Function f, Type t
+// where
+//   is_delete(snk) and
+//   is_user_data_direct(t) and
+//   src.getType().refersTo(t) and
+//   AllTaint::flow(src, snk) and
+//   f = snk.asParameter().getFunction() and
+//   src.getEnclosingCallable().getName() = "deleteUserController"
+// select t, src, snk

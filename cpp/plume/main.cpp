@@ -126,6 +126,12 @@ public:
 
 const std::string Comment::tableName = "comments";
 
+template <>
+Comment fromRow(const Row &row)
+{
+    return Comment(row[0].getInt());
+}
+
 class Media
 {
     int _id;
@@ -200,10 +206,11 @@ bool User::deleteUserController(Connection &conn)
     }
 
     // // Delete comments by the user
-    // std::vector<Comment> comments = Comment::listByAuthor(conn, id);
-    // for (Comment& comment : comments) {
-    //     comment.deleteComment(conn);
-    // }
+    std::vector<Comment> comments = Comment::listByAuthor(conn, id());
+    for (Comment &comment : comments)
+    {
+        comment.deleteComment(conn);
+    }
 
     // Delete media uploaded by the user
     std::vector<Media> media = Media::forUser(conn, id());

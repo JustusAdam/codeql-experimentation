@@ -22,7 +22,7 @@ Mostly the `simple-source-sink.ql` query.
 
 | Application | Policy | Result | Folder | Query |
 |-|-|-|-|-|
-| Plume | Data Deletion | ❌ | `plume` | `plume-data-deletion.ql` |
+| Plume | Data Deletion | ✅ | `plume` | `plume-data-deletion.ql` |
 | Lemmy | Instance Ban/Delete | ✅ | `lemmy` | `lemmy-instance.ql` |
 | Atomic | Authorization | ? | `atomic` | `atomic.ql` |
 
