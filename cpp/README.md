@@ -28,3 +28,29 @@ Mostly the `simple-source-sink.ql` query.
 
 We presume the Lemmy Community policy would also succeed, as it is virtually the
 same as the instance policy.
+
+## A word on building/codeql with libraries 
+
+Many examples (`plume`, `freedit`, `external-library`) use "third party
+libraries", which in this case means stub libraries for functionality that would
+normally be in a shared or otherwise precompiled external library. We link
+those libraries very simply in cmake using the path. What this means is that
+both to build the example or run it through codeql you need to first build the
+library in a very specific way in a subdirectory of the example called `build`.
+For instance the entire codeql workflow for `plume` is as follows:
+
+```sh
+cd plume/plib
+mkdir build
+cd build
+cmake ..
+cmake --build .
+cd ..
+codeql database create -lcpp qdb 
+# ... run queries
+```
+
+For just building replace the codeql command with cmake commands.
+
+As an aside all the libraries are build with x86_64 architecture because this is
+what codeql requires, even if you are on Apple silicon.
