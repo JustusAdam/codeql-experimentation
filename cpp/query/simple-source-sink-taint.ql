@@ -24,6 +24,16 @@ module AllFlows = PrintTaint;
 //   AllFlows::flow(src, target)
 // select target // last, last.getLocation()
 //
+// Version for vectors where sometimes the flow is only found if we query all
+// flows instead of configured ones.
+//
+// from DataFlow::Node source, DataFlow::Node sink
+// where
+//   AllFlows::flow(source, sink) and
+//   SourceSinkCallConfig::isSource(source) and
+//   SourceSinkCallConfig::isSink(sink)
+// select source, sink
+//
 from DataFlow::Node source, DataFlow::Node sink
 where SourceSinkCallTaint::flow(source, sink)
 select source, //source.asExpr().getAPrimaryQlClass(),
