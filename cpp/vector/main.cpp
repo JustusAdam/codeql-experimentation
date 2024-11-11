@@ -13,9 +13,13 @@ __attribute__((noinline)) int target(int source)
 
 int main(int argv, char **argc)
 {
-    // // index version with for loop
-    // // 
-    // // this one actually works
+    // Strangely these working configs only work with the `AllFlows` config,
+    // even if the `isSink` and `isSource` predicates are used to select the
+    // dataflow nodes we test in the query.
+
+    // index version with for loop
+    //
+    // this one actually works
 
     // std::vector<int> v = { 0 };
     // v[0] = source();
