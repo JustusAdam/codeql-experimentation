@@ -13,46 +13,11 @@
 import cpp
 import semmle.code.cpp.dataflow.new.TaintTracking
 import semmle.code.cpp.pointsto.PointsTo
-
-predicate is_sensitive(Type t) {
-  exists(string s |
-    t.getName() = s and
-    (
-      s = "Apikey" or
-      s = "LectureQuestionSubmission" or
-      s = "LectureQuestion" or
-      s = "LectureAnswer"
-    )
-  )
-}
-
-predicate is_store(Expr e) {
-  exists(FunctionCall c |
-    (
-      c.getTarget().getName() = "replace" or
-      c.getTarget().getName() = "insert"
-    ) and
-    c.getArgument(0) = e
-  )
-}
+import Basics
 
 predicate is_delete(Expr e) {
   exists(FunctionCall c | c.getTarget().getName() = "delete_" and c.getArgument(2) = e)
 }
-
-module StoreTaintConfig implements DataFlow::ConfigSig {
-  predicate isSource(DataFlow::Node n) {
-    any()
-    //exists(Type t | is_sensitive(t) and n.getType().refersTo(t))
-  }
-
-  predicate isSink(DataFlow::Node n) {
-    any()
-    //is_store(n.asExpr())
-  }
-}
-
-module StoreTaint = TaintTracking::Global<StoreTaintConfig>;
 
 // Use of any() here is because we've observed that sometimes flows involving
 // vectors are not captured correctly if isSource or isSink is meaningfully
