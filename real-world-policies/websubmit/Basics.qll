@@ -13,6 +13,13 @@ predicate is_sensitive(Type t) {
   )
 }
 
+predicate contains_sensitive_type(Type t) {
+  exists(Type s |
+    is_sensitive(s) and
+    t.resolveTypedefs().refersTo(s)
+  )
+}
+
 predicate is_store_function(Function f) {
   (
     f.getName() = "replace" or
@@ -54,3 +61,11 @@ module StoreTaintConfig implements DataFlow::ConfigSig {
 }
 
 module StoreTaint = TaintTracking::Global<StoreTaintConfig>;
+
+module AllFlowsConfig implements DataFlow::ConfigSig {
+  predicate isSource(DataFlow::Node n) { any() }
+
+  predicate isSink(DataFlow::Node n) { any() }
+}
+
+module AllFlows = TaintTracking::Global<AllFlowsConfig>;
