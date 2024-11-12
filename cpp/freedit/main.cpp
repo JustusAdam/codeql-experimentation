@@ -620,8 +620,10 @@ void clear_invalid(Database &db)
     {
         std::string k_str = std::string(key.begin(), key.end());
         auto time_stamp = std::stoll(k_str);
-        auto now = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-        if (now - time_stamp)
+        auto since_epoch = std::chrono::system_clock::now().time_since_epoch();
+        auto secs = std::chrono::duration_cast<std::chrono::seconds>(since_epoch);
+        auto now = secs.count();
+        if (now - time_stamp > 0)
         {
             tree->remove(key);
         }

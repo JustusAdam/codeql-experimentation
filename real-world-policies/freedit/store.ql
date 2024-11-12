@@ -12,16 +12,13 @@
 import cpp
 import semmle.code.cpp.dataflow.new.DataFlow
 import semmle.code.cpp.dataflow.new.TaintTracking
+import Common
 
 predicate is_store(Expr e) {
   exists(FunctionCall call |
     call.getArgument(0) = e and call.getTarget().getName() = "update_and_fetch"
   )
 }
-
-predicate is_pageview(Expr e) { e.getValue() = "user_stats" }
-
-predicate is_time(Expr e) { e.(FunctionCall).getTarget().getName() = "now" }
 
 // Sanity, all relevant objects
 // from Expr e, DataFlow::Node node, string message
