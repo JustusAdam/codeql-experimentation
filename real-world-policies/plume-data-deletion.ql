@@ -67,17 +67,16 @@ module Taint = TaintTracking::Global<SourceSinkCallConfig>;
 //     Taint::flow(retrieval, delete) //or not reachable_from_root(delete.asExpr()))
 //   )
 // select stored_data
-from Type user_data
-where
-  is_user_data_direct(user_data) and
-  not exists(DataFlow::Node source, DataFlow::Node sink |
-    source.getEnclosingCallable().getName() = "deleteUserController" and
-    source.getType().refersTo(user_data) and
-    Taint::flow(source, sink)
-  )
-//where delete.asExpr().(FunctionCall).getTarget().getName()
-select user_data
-
+// from Type user_data
+// where
+//   is_user_data_direct(user_data) and
+//   not exists(DataFlow::Node source, DataFlow::Node sink |
+//     source.getEnclosingCallable().getName() = "deleteUserController" and
+//     source.getType().refersTo(user_data) and
+//     Taint::flow(source, sink)
+//   )
+// //where delete.asExpr().(FunctionCall).getTarget().getName()
+// select user_data
 module AllConfig implements DataFlow::ConfigSig {
   predicate isSource(DataFlow::Node source) { any() }
 
@@ -85,6 +84,15 @@ module AllConfig implements DataFlow::ConfigSig {
 }
 
 module AllTaint = TaintTracking::Global<AllConfig>;
+
+predicate is_delete_2(DataFlow::Node e) {
+  exists(Call c, Expr arg |
+    c.getTarget().getName() = "deleteAny" and
+    c.getArgument(0) = arg and
+    (e.asExpr() = arg or e.asIndirectExpr() = arg)
+  )
+}
+
 // from DataFlow::Node src, DataFlow::Node snk, Function f, Type t
 // where
 //   is_delete(snk) and
@@ -96,13 +104,14 @@ module AllTaint = TaintTracking::Global<AllConfig>;
 // select t, src, snk
 //
 // This tests that actually the database calls don't flow to the delete.
-// from Type user_data, FunctionCall f, DataFlow::Node source, DataFlow::Node sink
-// where
-//   is_user_data_direct(user_data) and
-//   source.getEnclosingCallable().getName() = "deleteUserController" and
-//   source.asExpr() = f and
-//   source.getType().refersTo(user_data)
-// // and
-// // Taint::flow(source, sink)
-// //where delete.asExpr().(FunctionCall).getTarget().getName()
-// select user_data, f
+from Type user_data, FunctionCall f, DataFlow::Node source, DataFlow::Node sink
+where
+  is_user_data_direct(user_data) and
+  source.getEnclosingCallable().getName() = "deleteUserController" and
+  source.asExpr() = f and
+  source.getType().refersTo(user_data) and
+  is_db_method(f.getTarget()) and
+  AllTaint::flow(source, sink) and
+  is_delete_2(sink)
+//sink.getLocation().getFile().getBaseName() = "main.cpp"
+select source, sink
