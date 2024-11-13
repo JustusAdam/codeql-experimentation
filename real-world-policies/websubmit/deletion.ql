@@ -68,3 +68,17 @@ where
   is_delete(delete_arg) and
   pointer(delete_arg, target)
 select delete_arg, target
+//
+// Testing that taint does not cross the `Value` constructor
+//
+// from DataFlow::Node num, DataFlow::Node vnum, Variable vnum_v, Function questions_submit // Parameter num_v
+// where
+//   // num_v.getName() = "num" and
+//   vnum_v.getName() = "vnum" and
+//   // num_v.getFunction() = questions_submit and
+//   vnum_v.getEnclosingElement().(Function) = questions_submit and
+//   questions_submit.getName() = "questions_submit" and
+//   // num.asExpr().(VariableAccess).getTarget() = num_v and
+//   vnum.asExpr().(VariableAccess).getTarget() = vnum_v and
+//   AllFlows::flow(num, vnum)
+// select num, vnum, num.getLocation().getStartLine()
