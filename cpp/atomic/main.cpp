@@ -94,21 +94,6 @@ public:
     virtual std::optional<Resource> get_resource(const std::string &url) = 0;
 };
 
-bool check_write(
-    const std::shared_ptr<Storelike> &store,
-    const std::shared_ptr<Resource> &resource,
-    const std::string &agent);
-
-namespace datetime_helpers
-{
-    uint64_t now()
-    {
-        auto now = std::chrono::system_clock::now();
-        return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-    }
-}
-
-// Assuming these are defined elsewhere in your C++ codebase
 namespace urls
 {
     const std::string WRITE = "https://atomicdata.dev/properties/write";
@@ -121,6 +106,61 @@ namespace urls
     const std::string DESTROY = "https://atomicdata.dev/properties/destroy";
     const std::string SIGNATURE = "https://atomicdata.dev/properties/signature";
     const std::string PUBLIC_KEY = "https://atomicdata.dev/properties/publicKey";
+}
+
+bool check_write(
+    Storelike &store,
+    Resource &resource,
+    const std::string &agent)
+{
+    // Check if the resource's write rights explicitly refers to the agent
+    try
+    {
+        auto arr_val = resource.get(urls::WRITE);
+        auto vec = arr_val->to_vec();
+        if (std::find(vec.begin(), vec.end(), agent) != vec.end())
+        {
+            return true;
+        }
+    }
+    catch (const std::exception &e)
+    {
+        // If there's an error (e.g., property not found), we continue to check the parent
+    }
+
+    // Try the parents recursively
+    try
+    {
+        auto val = resource.get(urls::PARENT);
+        auto parent = store.get_resource(val->to_string());
+        return check_write(store, *parent, agent);
+    }
+    catch (const std::exception &e)
+    {
+        // If there's an error (e.g., no parent), we return false
+        return false;
+    }
+}
+
+void check_write2(
+    Storelike &store,
+    Resource &resource,
+    const std::string &agent)
+{
+    if (!check_write(store, resource, agent))
+    {
+        throw std::runtime_error(
+            "Agent " + agent + " is not permitted. There should be a write right referring to this Agent in this Resource or its parent.");
+    }
+}
+
+namespace datetime_helpers
+{
+    uint64_t now()
+    {
+        auto now = std::chrono::system_clock::now();
+        return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    }
 }
 
 class Commit
@@ -234,13 +274,14 @@ public:
         {
             this->modify_parent(resource, store);
 
-            if (!check_write(store, resource, signer))
+            if (!check_write(*store, *resource, signer))
             {
                 throw std::runtime_error(
                     "Agent " + signer + " is not permitted to edit " + subject +
                     ". There should be a write right referring to this Agent in this Resource or its parent.");
             }
-            std::cout << "This should not happen!" << std::endl;
+
+            // check_write2(*store, *resource, signer);
         }
 
         if (destroy && *destroy)
@@ -319,37 +360,3 @@ private:
         return s;
     }
 };
-
-bool check_write(
-    Storelike &store,
-    Resource &resource,
-    const std::string &agent)
-{
-    // Check if the resource's write rights explicitly refers to the agent
-    try
-    {
-        auto arr_val = resource.get(urls::WRITE);
-        auto vec = arr_val->to_vec();
-        if (std::find(vec.begin(), vec.end(), agent) != vec.end())
-        {
-            return true;
-        }
-    }
-    catch (const std::exception &e)
-    {
-        // If there's an error (e.g., property not found), we continue to check the parent
-    }
-
-    // Try the parents recursively
-    try
-    {
-        auto val = resource.get(urls::PARENT);
-        auto parent = store.get_resource(val->to_string());
-        return check_write(store, *parent, agent);
-    }
-    catch (const std::exception &e)
-    {
-        // If there's an error (e.g., no parent), we return false
-        return false;
-    }
-}

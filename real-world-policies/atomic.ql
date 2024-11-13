@@ -23,6 +23,7 @@
 //                 B) "auth_check" affects whether "set_new_resource_properties" happens
 import cpp
 import semmle.code.cpp.dataflow.new.TaintTracking
+import semmle.code.cpp.controlflow.Guards
 
 predicate is_resource(Expr e) {
   //   exists(FunctionCall c |
@@ -66,13 +67,14 @@ module Flows = TaintTracking::Global<AllFlowsConfig>;
 //     A. There is a "commit" marked commit where:
 //         a. "commit" goes to "resource"
 //
-from DataFlow::Node commit, DataFlow::Node resource
-where
-  is_commit(commit.asExpr()) and
-  is_resource(resource.asExpr()) and
-  Flows::flow(commit, resource) and
-  commit.getLocation().getFile().getBaseName() = "main.cpp"
-select commit, resource, resource.getLocation()
+// from DataFlow::Node commit, DataFlow::Node resource
+// where
+//   is_commit(commit.asExpr()) and
+//   is_resource(resource.asExpr()) and
+//   Flows::flow(commit, resource) and
+//   commit.getLocation().getFile().getBaseName() = "main.cpp"
+// select commit, resource, resource.getLocation()
+//
 //
 //     B. There is a "store" marked sink where:
 //         a. "resource" goes to "store"
@@ -115,3 +117,19 @@ select commit, resource, resource.getLocation()
 //   ) and
 //   n.asExpr() = e
 // select n, message
+//
+// from Expr store, GuardCondition check, Expr child
+// where
+//   is_check_rights(child) and
+//   child = check.getAChild+() and
+//   is_sink(store) and
+//   check.controls(store.getBasicBlock(), _)
+// select check, store, check.getLocation()
+//
+from Expr store, GuardCondition check, Expr check_rights
+where
+  check.getLocation().getFile().getBaseName() = "main.cpp" and
+  check.controls(store.getBasicBlock(), _) and
+  is_check_rights(check_rights) and
+  check.getAChild*() = check_rights
+select store, store.getLocation()
