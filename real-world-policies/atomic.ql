@@ -29,7 +29,7 @@ predicate is_resource(Expr e) {
   //     c.getQualifier() = e and
   //     c.getTarget().getName() = "set_propval"
   // )
-  e.(FunctionCall).getTarget().getName() = "set_propval"
+  exists(Call c | c.getTarget().getName() = "set_propval" and c.getQualifier() = e)
 }
 
 predicate is_commit(Expr e) {
@@ -63,21 +63,55 @@ module AllFlowsConfig implements DataFlow::ConfigSig {
 
 module Flows = TaintTracking::Global<AllFlowsConfig>;
 
+//     A. There is a "commit" marked commit where:
+//         a. "commit" goes to "resource"
 //
-// from DataFlow::Node commit, DataFlow::Node resource
-// where
-//   is_commit(commit.asExpr()) and
-//   is_resource(resource.asExpr()) and
-//   Flows::flow(commit, resource) and
-//   commit.getLocation().getFile().getBaseName() = "main.cpp"
-// select commit, resource
+from DataFlow::Node commit, DataFlow::Node resource
+where
+  is_commit(commit.asExpr()) and
+  is_resource(resource.asExpr()) and
+  Flows::flow(commit, resource) and
+  commit.getLocation().getFile().getBaseName() = "main.cpp"
+select commit, resource, resource.getLocation()
 //
 //     B. There is a "store" marked sink where:
 //         a. "resource" goes to "store"
 //
-from DataFlow::Node store, DataFlow::Node resource
-where
-  is_sink(store.asExpr()) and
-  is_resource(resource.asExpr()) and
-  Flows::flow(store, resource)
-select resource, store
+// from DataFlow::Node store, DataFlow::Node resource
+// where
+//   is_sink(store.asExpr()) and
+//   is_resource(resource.asExpr()) and
+//   Flows::flow(resource, store)
+// select resource, store, resource.getLocation()
+//
+// 1. "stored_resource" is each "resource" marked resource where:
+//     A. There is a "commit" marked commit where:
+//         a. "commit" goes to "resource"
+//     and
+//     B. There is a "store" marked sink where:
+//         a. "resource" goes to "store"
+// from DataFlow::Node commit, DataFlow::Node resource, DataFlow::Node store
+// where
+//   is_commit(commit.asExpr()) and
+//   is_resource(resource.asExpr()) and
+//   Flows::flow(commit, resource) and
+//   is_sink(store.asExpr()) and
+//   Flows::flow(resource, store) and
+//   commit.getLocation().getFile().getBaseName() = "main.cpp"
+// select commit, resource, store
+//
+// Relevant expressions
+//
+// from Expr e, DataFlow::Node n, string message
+// where
+//   (
+//     is_sink(e) and message = "sink"
+//     or
+//     is_resource(e) and message = "resource"
+//     or
+//     is_commit(e) and message = "commit"
+//     or
+//     is_check_rights(e) and message = "check rights"
+//   ) and
+//   n.asExpr() = e
+// select n, message
