@@ -29,14 +29,7 @@ predicate is_store_function(Function f) {
 }
 
 predicate is_store(DataFlow::Node n) {
-  exists(Variable v |
-    n.asVariable() = v and
-    is_store_function(v.getEnclosingElement().(Function)) and
-    v.getName() = "reval"
-  )
-  //   exists(Parameter p |
-  //     n.asParameter() = p and p.getIndex() = 1 and is_store_function(p.getFunction())
-  //   )
+  exists(Call c | c.getArgument(1) = n.asExpr() and is_store_function(c.getTarget()))
 }
 
 // predicate is_store(Expr e) {
