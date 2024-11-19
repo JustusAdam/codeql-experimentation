@@ -113,4 +113,4 @@ where
     (is_delete_check(check) or is_ban_check(check)) and
     controlsExec(check, db_access)
   )
-select db_access
+select db_access, db_access.getLocation()

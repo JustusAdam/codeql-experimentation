@@ -64,6 +64,14 @@ module AllFlowsConfig implements DataFlow::ConfigSig {
 
 module Flows = TaintTracking::Global<AllFlowsConfig>;
 
+predicate controlsExec(Expr input, Expr dependent) {
+  exists(GuardCondition guard, BasicBlock controlledBlock |
+    input = guard.getAChild*() and
+    guard.controls(controlledBlock, _) and
+    dependent.getBasicBlock() = controlledBlock
+  )
+}
+
 //     A. There is a "commit" marked commit where:
 //         a. "commit" goes to "resource"
 //
@@ -126,10 +134,10 @@ module Flows = TaintTracking::Global<AllFlowsConfig>;
 //   check.controls(store.getBasicBlock(), _)
 // select check, store, check.getLocation()
 //
-from Expr store, GuardCondition check, Expr check_rights
+from Expr store, Expr check_rights
 where
-  check.getLocation().getFile().getBaseName() = "main.cpp" and
-  check.controls(store.getBasicBlock(), _) and
-  is_check_rights(check_rights) and
-  check.getAChild*() = check_rights
+  is_sink(store) and
+  check_rights.getLocation().getFile().getBaseName() = "main.cpp" and
+  controlsExec(check_rights, store) and
+  is_check_rights(check_rights)
 select store, store.getLocation()

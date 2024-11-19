@@ -270,19 +270,19 @@ public:
             resource->check_required_props(store);
         }
 
-        if (validate_rights)
+        // if (validate_rights)
+        // {
+        this->modify_parent(resource, store);
+
+        if (!check_write(*store, *resource, signer))
         {
-            this->modify_parent(resource, store);
-
-            if (!check_write(*store, *resource, signer))
-            {
-                throw std::runtime_error(
-                    "Agent " + signer + " is not permitted to edit " + subject +
-                    ". There should be a write right referring to this Agent in this Resource or its parent.");
-            }
-
-            // check_write2(*store, *resource, signer);
+            throw std::runtime_error(
+                "Agent " + signer + " is not permitted to edit " + subject +
+                ". There should be a write right referring to this Agent in this Resource or its parent.");
         }
+
+        // check_write2(*store, *resource, signer);
+        // }
 
         if (destroy && *destroy)
         {
