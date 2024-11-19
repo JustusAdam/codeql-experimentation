@@ -4,6 +4,7 @@
 #include <cassert>
 #include <memory>
 #include <string>
+#include <algorithm>
 
 namespace mt
 {
@@ -220,18 +221,22 @@ public:
 };
 
 void controller(
-    int num,
     const rocket::request::Form<LectureQuestionSubmission> &data,
-    const rocket::State<std::shared_ptr<mutex<backend::MySqlBackend>>> &backend)
+    backend::MySqlBackend &bg)
 {
-    auto bg = (*backend)->lock();
 
-    Value vnum = Value((uint64_t)num);
-    Value ts = Value(std::chrono::system_clock::now());
+    bg.replace("answers", std::vector<Value>());
 
-    for (const auto &[id, elem] : data->answers)
+    // Destructuring assignment seems to trigger an empty for loop body.
+    //
+    // for (const auto &[id, elem] : data->answers)
+    // {
+    //     auto rec = std::vector<Value>{Value(id), Value(elem)};
+    //     bg.replace("answers", rec);
+    // }
+    for (const auto &elem : data->answers)
     {
-        auto rec = std::vector<Value>{vnum, Value(id), Value(elem), ts};
-        bg->replace("answers", rec);
+        auto rec = std::vector<Value>{Value(elem.first), Value(elem.second)};
+        bg.replace("answers", rec);
     }
 }
