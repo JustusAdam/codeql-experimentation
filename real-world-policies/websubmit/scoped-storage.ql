@@ -13,9 +13,29 @@ import semmle.code.cpp.dataflow.new.TaintTracking
 // from Call c, DataFlow::Node node
 // where node.asExpr() = c.getArgument(1) and is_store_function(c.getTarget())
 // select c, node, node.getLocation()
-from Call c, Expr argument, DataFlow::Node n
-where
-  is_store_function(c.getTarget()) and
-  argument = c.getArgument(1) and
-  argument = n.asIndirectArgument()
-select c, argument, n, c.getLocation()
+//
+// from Call c, Expr argument, DataFlow::Node n
+// where
+//   is_store_function(c.getTarget()) and
+//   argument = c.getArgument(1) and
+//   argument = n.asIndirectArgument()
+// select c, argument, n, c.getLocation()
+//
+// from Call c, Function f, Type t
+// where
+//   c.getTarget() = f and
+//   f.getName() = "replace" and
+//   f.getDeclaringType() = t
+// select c, t, c.getLocation()
+//
+// from VariableAccess a, Variable v, Expr parent
+// where
+//   a.getEnclosingFunction().getName() = "questions_submit" and
+//   v.getName() = "bg" and
+//   parent.getAChild*() = a and
+//   a.getTarget() = v
+// select a, parent, a.getLocation()
+//
+from Expr e
+where e.getEnclosingFunction().getName() = "questions_submit"
+select e, e.getLocation().getStartLine()
