@@ -1,7 +1,6 @@
 #include <vector>
 
-__attribute__((noinline))
-int source()
+__attribute__((noinline)) int source()
 {
     return 2;
 }
@@ -13,52 +12,74 @@ __attribute__((noinline)) int target(int source)
 
 int main(int argv, char **argc)
 {
+    int result = 0;
+
     // Strangely these working configs only work with the `AllFlows` config,
     // even if the `isSink` and `isSource` predicates are used to select the
     // dataflow nodes we test in the query.
 
+    // latest run is with codeql 2.19.3 and on ubuntu where presumably we use
+    // gcc (version 11.4.0)
+
     // index version with for loop
     //
-    // this one actually works
+    // works
 
-    // std::vector<int> v = { 0 };
-    // v[0] = source();
-    // int ret = 0;
-    // for (auto elem : v)
-    // {
-    //     ret += target(elem);
-    // }
-    // return ret;
+    std::vector<int> v0 = {0};
+    v0[0] = source();
+    int ret = 0;
+    for (auto elem : v0)
+    {
+        ret += target(elem);
+    }
+    result += ret;
 
-    // index version
-    // 
-    // Does not work
+    // index version with index retrieval
+    //
+    // works
 
-    std::vector<int> v = { 0 };
-    v[0] = source();
-    return target(v[0]);
+    std::vector<int> v1 = {0};
+    v1[0] = source();
+    result += target(v1[0]);
 
-    // // push back version
-    // // 
-    // // Does not work
+    // push back with indexed retrieval
+    //
+    // Works
 
-    // std::vector<int> v;
-    // v.push_back(source());
-    // auto elem = v[0];
-    // return target(elem);
+    std::vector<int> v2;
+    v2.push_back(source());
+    auto elem2 = v2[0];
+    result += target(elem2);
 
-    // Does not work
+    // indexing with "at" retrieval
+    //
+    // works
 
-    // std::vector<int> v;
-    // v.push_back(source());
-    // auto elem = v.at(0);
-    // return target(elem);
+    std::vector<int> v3;
+    v3[0] = source();
+    auto elem3 = v3.at(0);
+    result += target(elem3);
 
-    // Arrays do work, even with a reassigned
+    // Push back with loop.
+    //
+    // Works.
 
-    // int arr[1] = { 0 };
-    // arr[0] = source();
+    std::vector<int> v4;
+    v4.push_back(source());
+    int ret1 = 0;
+    for (auto elem : v4)
+    {
+        ret1 += target(elem);
+    }
+    result += ret1;
 
-    // int* arrp = arr;
-    // return target(arrp[0]);
+    // Arrays do work, even with a reassigned pointer
+
+    int arr[1] = {0};
+    arr[0] = source();
+
+    int *arrp = arr;
+    result += target(arrp[0]);
+
+    return result;
 }
