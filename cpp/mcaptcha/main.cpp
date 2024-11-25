@@ -1,0 +1,84 @@
+#include <string>
+#include <optional>
+#include <memory>
+#include "third_party/third_party.hpp"
+
+// Equivalent structure for validation token
+struct ValidationToken
+{
+    std::string token;
+};
+
+template <>
+void encode_json(const ValidationToken &value, std::vector<uint8_t> &response)
+{
+    response.insert(response.end(), value.token.begin(), value.token.end());
+}
+
+// Equivalent structure for API work
+struct ApiWork
+{
+    std::string string;
+    std::string result;
+    uint64_t nonce;
+    std::string key;
+    std::optional<uint32_t> time;
+    std::optional<std::string> worker_type;
+};
+
+// Conversion function from ApiWork to Work
+Work convert_to_work(const ApiWork &value)
+{
+    return Work{
+        .string = value.string,
+        .nonce = value.nonce,
+        .result = value.result,
+        .key = value.key};
+}
+
+// Main verification function
+HttpResponse verify_pow(
+    const HttpRequest &req,
+    const web::Json<ApiWork> &payload,
+    const std::shared_ptr<AppData> &data)
+{
+    std::string ip = req.get_connection_info().get_peer_addr();
+
+    std::string key = payload->key;
+    ApiWork work_payload = payload.get();
+    auto worker_type = work_payload.worker_type;
+    auto time = work_payload.time;
+    auto nonce = work_payload.nonce;
+
+    // Verify the proof of work
+    auto [res, difficulty_factor] = data->captcha.verify_pow(
+        convert_to_work(work_payload),
+        ip);
+
+    data->stats.record_solve(data, key);
+
+    // Handle analytics if time and worker_type are present
+    if (time && worker_type)
+    {
+        CreatePerformanceAnalytics analytics{
+            .difficulty_factor = difficulty_factor,
+            .time = *time,
+            .worker_type = *worker_type};
+
+        if (data->db.analytics_captcha_is_published(key))
+        {
+            data->db.analysis_save(key, analytics);
+        }
+    }
+
+    // Update max nonce
+    data->db.update_max_nonce_for_level(
+        key,
+        difficulty_factor,
+        static_cast<uint32_t>(nonce));
+
+    // Prepare and return response
+    ValidationToken response_payload{.token = res};
+    return HttpResponse::Ok()
+        .set_json(response_payload);
+}
