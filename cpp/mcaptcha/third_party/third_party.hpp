@@ -81,6 +81,8 @@ public:
     bool analytics_captcha_is_published(const std::string &key);
     void analysis_save(const std::string &key, const CreatePerformanceAnalytics &analytics);
     void update_max_nonce_for_level(const std::string &key, uint32_t difficulty_factor, uint32_t nonce);
+    void delete_user(const std::string &username);
+    uint64_t get_password(const std::string &username);
 };
 
 class AppData;
@@ -97,4 +99,25 @@ struct AppData
     CaptchaSystem captcha;
     Stats stats;
     Database db;
+};
+
+struct Identity
+{
+    std::string username;
+
+public:
+    std::string &identity();
+    void forget();
+};
+
+struct Password
+{
+public:
+    std::string password;
+};
+
+struct Config
+{
+public:
+    static bool verify(uint64_t hash, const std::string &password);
 };

@@ -32,3 +32,25 @@ void Database::analysis_save(const std::string &key, const CreatePerformanceAnal
 void Database::update_max_nonce_for_level(const std::string &key, uint32_t difficulty_factor, uint32_t nonce) {}
 
 void Stats::record_solve(const std::shared_ptr<AppData> &data, const std::string &key) {}
+
+void Database::delete_user(const std::string &username)
+{
+}
+
+uint64_t Database::get_password(const std::string &username)
+{
+    return 0;
+}
+
+std::string &Identity::identity()
+{
+    return username;
+}
+void Identity::forget()
+{
+}
+
+bool Config::verify(uint64_t hash, const std::string &password)
+{
+    return true;
+}

@@ -1,6 +1,7 @@
 #include <string>
 #include <optional>
 #include <memory>
+#include <exception>
 #include "third_party/third_party.hpp"
 
 // Equivalent structure for validation token
@@ -81,4 +82,21 @@ HttpResponse verify_pow(
     ValidationToken response_payload{.token = res};
     return HttpResponse::Ok()
         .set_json(response_payload);
+}
+
+HttpResponse delete_account(Identity &id, web::Json<Password> &payload, AppData &data)
+{
+    auto username = id.identity();
+    auto hash = data.db.get_password(username);
+
+    if (Config::verify(hash, payload->password))
+    {
+        data.db.delete_user(username);
+        id.forget();
+        return HttpResponse::Ok();
+    }
+    else
+    {
+        throw std::exception();
+    }
 }
