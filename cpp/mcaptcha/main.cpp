@@ -45,7 +45,7 @@ HttpResponse verify_pow(
 {
     std::string ip = req.get_connection_info().get_peer_addr();
 
-    std::string key = payload->key;
+    const std::string &key = payload->key;
     ApiWork work_payload = payload.get();
     auto worker_type = work_payload.worker_type;
     auto time = work_payload.time;
