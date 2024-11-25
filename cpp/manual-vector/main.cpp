@@ -97,6 +97,22 @@ __attribute__((noinline)) int target(int source)
     return source;
 }
 
+template <typename T>
+__attribute__((noinline)) void other_target(T &source)
+{
+}
+
+struct with_field
+{
+public:
+    int field;
+
+    void assign(int i)
+    {
+        field = i;
+    }
+};
+
 int main(int argv, char **argc)
 {
     int result = 0;
@@ -128,32 +144,32 @@ int main(int argv, char **argc)
     //
     // this one actually works
 
-    vec<int> v0 = vec<int>();
-    v0[0] = source();
-    int ret = 0;
-    for (auto elem : v0)
-    {
-        ret += target(elem);
-    }
+    // vec<int> v0 = vec<int>();
+    // v0[0] = source();
+    // int ret = 0;
+    // for (auto elem : v0)
+    // {
+    //     ret += target(elem);
+    // }
 
-    result += ret;
+    // result += ret;
 
     // index version
     //
     // Does not work
 
-    vec<int> v1 = vec<int>();
-    v1[0] = source();
-    result += target(v1[0]);
+    // vec<int> v1 = vec<int>();
+    // v1[0] = source();
+    // result += target(v1[0]);
 
     // push back version
     //
     // Does not work
 
-    vec<int> v2;
-    v2.push_back(source());
-    auto elem = v2[0];
-    result += target(elem);
+    // vec<int> v2;
+    // v2.push_back(source());
+    // auto elem = v2[0];
+    // result += target(elem);
 
     // Does not work
 
@@ -169,5 +185,23 @@ int main(int argv, char **argc)
 
     // int* arrp = arr;
     // return target(arrp[0]);
+
+    vec<int> v3;
+    v3[0] = source();
+    other_target(v3);
+
+    // with_field f;
+    // f.field = source();
+    // auto x = f.field;
+    // other_target(f);
+    // other_target(f.field);
+
+    // int src = source();
+    // other_target(src);
+
+    // with_field f2;
+    // f2.assign(source());
+    // other_target(f2);
+
     return result;
 }

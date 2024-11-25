@@ -14,7 +14,8 @@ int target(int source)
     return source;
 }
 
-void set(int(**ptr)(), int(*ptr2)()) {
+void set(int (**ptr)(), int (*ptr2)())
+{
     *ptr = ptr2;
 }
 
@@ -22,8 +23,11 @@ int main(int argv, char **argc)
 {
     int (*fptr)();
 
-    // fptr = a_function;
     set(&fptr, a_function);
+
+    target(fptr());
+
+    fptr = a_function;
 
     target(fptr());
 

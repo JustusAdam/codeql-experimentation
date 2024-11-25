@@ -34,7 +34,9 @@ module AllFlows = PrintTaint;
 //   SourceSinkCallConfig::isSink(sink)
 // select source, sink
 //
-from DataFlow::Node source, DataFlow::Node sink
-where SourceSinkCallTaint::flow(source, sink)
-select source, source.getLocation().getStartLine(), //source.asExpr().getAPrimaryQlClass(),
-  sink, sink.getLocation().getStartLine() //, sink.asExpr().getAPrimaryQlClass()
+from DataFlow::Node source, DataFlow::Node sink, int source_line, int sink_line
+where
+  SourceSinkCallTaint::flow(source, sink) and
+  source_line = source.getLocation().getStartLine() and
+  sink_line = sink.getLocation().getStartLine()
+select source, source_line, sink, sink_line

@@ -8,26 +8,27 @@ int target(int source)
     return source;
 }
 
-class Base {
+class Base
+{
 public:
     virtual int f() = 0;
 };
 
-class A : public Base {
+class A : public Base
+{
     int f() { return source(); }
 };
 
-struct Container { Base* b; };
+struct Container
+{
+    Base *b;
+};
 
-// true positive
-// int main(int argv, char **argc) {
-//     Base* b = new A;
-//     target(b->f());
-//     return 0;
-// }
+int main(int argv, char **argc)
+{
+    Base *b = new A;
+    target(b->f());
 
-// false negative
-int main(int argv, char **argc) {
     Container c;
     c.b = new A;
     target(c.b->f());
