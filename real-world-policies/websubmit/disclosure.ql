@@ -42,11 +42,10 @@ predicate bless_safe_source(DataFlow::Node n) {
 }
 
 Call email_call() {
-  forall(Call c, Function f |
+  exists(Call c, Function f |
     c.getTarget() = f and
     f.getName() = "send" and
-    f.getNamespace().getName() = "email"
-  |
+    f.getNamespace().getName() = "email" and
     result = c
   )
 }
@@ -56,12 +55,11 @@ module SinkFlowConfig implements DataFlow::ConfigSig {
 
   predicate isSink(DataFlow::Node n) { any() }
 
-  predicate isAdditionalFlowStep(DataFlow::Node n1, DataFlow::Node n2) {
-    exists(FieldAccess a, Type sens |
-      a.getQualifier().getType().resolveTypedefs().refersTo(sens) and
-      is_sensitive(sens) and
-      n2.asExpr() = a and
-      a.getQualifier() = n1.asExpr()
+  predicate isAdditionalFlowStep(DataFlow::Node lhs, DataFlow::Node rhs) {
+    exists(ConstructorCall c |
+      c.getTarget().getName() = ["vector", "initializer_list"] and
+      c = rhs.asExpr() and
+      c.getAnArgument() = lhs.asExpr()
     )
   }
 }
@@ -70,9 +68,16 @@ module SinkFlow = TaintTracking::Global<SinkFlowConfig>;
 
 predicate is_scope(DataFlow::Node n) { email_call().getArgument(0) = n.asExpr() }
 
-predicate is_external_sink(DataFlow::Node n) { email_call().getArgument(3) = n.asExpr() }
+predicate is_external_sink(DataFlow::Node n) { email_call().getArgument(3) = n.asIndirectExpr() }
 
-predicate is_sensitive_node(DataFlow::Node n) { contains_sensitive_type(n.getType()) }
+predicate is_sensitive_node(DataFlow::Node n) {
+  contains_sensitive_type(n.getType())
+  // exists(VariableAccess va |
+  //   va.getTarget().getName() = "apikey" and
+  //   n.asExpr() = va and
+  //   va.getEnclosingFunction().getName() = "questions_submit"
+  // )
+}
 
 from DataFlow::Node src, DataFlow::Node sink
 where is_sensitive_node(src) and is_external_sink(sink) and SinkFlow::flow(src, sink)

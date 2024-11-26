@@ -59,6 +59,12 @@ module AllFlowsConfig implements DataFlow::ConfigSig {
   predicate isSource(DataFlow::Node n) { any() }
 
   predicate isSink(DataFlow::Node n) { any() }
+
+  predicate isAdditionalFlowStep(DataFlow::Node lhs, DataFlow::Node rhs) {
+    exists(ConstructorCall c | c.getTarget().getName() = ["vector", "initializer_list"]
+      and c = rhs.asExpr() and c.getAnArgument() = lhs.asExpr()
+    )
+  } 
 }
 
 module AllFlows = TaintTracking::Global<AllFlowsConfig>;
