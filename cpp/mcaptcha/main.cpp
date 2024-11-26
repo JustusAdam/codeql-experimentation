@@ -86,7 +86,7 @@ HttpResponse verify_pow(
 
 HttpResponse delete_account(Identity &id, web::Json<Password> &payload, AppData &data)
 {
-    auto username = id.identity();
+    auto &username = id.identity();
     auto hash = data.db.get_password(username);
 
     if (Config::verify(hash, payload->password))
