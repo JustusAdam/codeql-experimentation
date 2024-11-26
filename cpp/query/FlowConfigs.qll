@@ -40,7 +40,7 @@ module SourceSinkCallConfig implements DataFlow::ConfigSig {
   predicate isSource(DataFlow::Node source) { isSourceCall(source.asExpr()) }
 
   predicate isSink(DataFlow::Node sink) {
-    isTargetOperand(sink.asExpr())
+    isTargetOperand(sink.asExpr()) or isTargetOperand(sink.asIndirectExpr())
     //isTargetFunction(sink.asExpr().(FunctionCall).getTarget())
     //isTargetParameter(sink.asParameter())
   }
