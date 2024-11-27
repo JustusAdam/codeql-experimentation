@@ -75,14 +75,13 @@ predicate controlsExec(Expr input, Expr dependent) {
 //     A. There is a "commit" marked commit where:
 //         a. "commit" goes to "resource"
 //
-// from DataFlow::Node commit, DataFlow::Node resource
-// where
-//   is_commit(commit.asExpr()) and
-//   is_resource(resource.asExpr()) and
-//   Flows::flow(commit, resource) and
-//   commit.getLocation().getFile().getBaseName() = "main.cpp"
-// select commit, resource, resource.getLocation()
-//
+from DataFlow::Node commit, DataFlow::Node resource
+where
+  (is_commit(commit.asExpr()) or is_commit(commit.asIndirectExpr())) and
+  (is_resource(resource.asExpr()) or is_resource(resource.asIndirectExpr())) and
+  Flows::flow(commit, resource) and
+  commit.getLocation().getFile().getBaseName() = "main.cpp"
+select commit, resource, resource.getLocation()
 //
 //     B. There is a "store" marked sink where:
 //         a. "resource" goes to "store"
@@ -134,10 +133,10 @@ predicate controlsExec(Expr input, Expr dependent) {
 //   check.controls(store.getBasicBlock(), _)
 // select check, store, check.getLocation()
 //
-from Expr store, Expr check_rights
-where
-  is_sink(store) and
-  check_rights.getLocation().getFile().getBaseName() = "main.cpp" and
-  controlsExec(check_rights, store) and
-  is_check_rights(check_rights)
-select store, store.getLocation()
+// from Expr store, Expr check_rights
+// where
+//   is_sink(store) and
+//   check_rights.getLocation().getFile().getBaseName() = "main.cpp" and
+//   controlsExec(check_rights, store) and
+//   is_check_rights(check_rights)
+// select store, store.getLocation()
