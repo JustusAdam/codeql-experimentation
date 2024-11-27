@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <memory>
 #include <iostream>
+#include <algorithm>
 
 #include "externals.hpp"
 
