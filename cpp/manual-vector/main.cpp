@@ -98,7 +98,7 @@ __attribute__((noinline)) int target(int source)
 }
 
 template <typename T>
-__attribute__((noinline)) void other_target(T &source)
+__attribute__((noinline)) void target(T &source)
 {
 }
 
@@ -144,32 +144,46 @@ int main(int argv, char **argc)
     //
     // this one actually works
 
-    // vec<int> v0 = vec<int>();
-    // v0[0] = source();
-    // int ret = 0;
-    // for (auto elem : v0)
-    // {
-    //     ret += target(elem);
-    // }
+    vec<int> v0 = vec<int>();
+    v0[0] = source();
+    int ret = 0;
+    for (auto elem : v0)
+    {
+        ret += target(elem);
+    }
 
     // result += ret;
 
     // index version
     //
-    // Does not work
+    // Works
 
-    // vec<int> v1 = vec<int>();
-    // v1[0] = source();
-    // result += target(v1[0]);
+    vec<int> v1 = vec<int>();
+    v1[0] = source();
+    result += target(v1[0]);
 
     // push back version
     //
     // Does not work
 
-    // vec<int> v2;
-    // v2.push_back(source());
-    // auto elem = v2[0];
-    // result += target(elem);
+    vec<int> v2;
+    v2.push_back(source());
+    auto elem = v2[0];
+    result += target(elem);
+
+    // push back plus iteration
+    //
+    // This one works
+
+    vec<int> v3 = vec<int>();
+    v3.push_back(source());
+    int ret2 = 0;
+    for (auto elem : v3)
+    {
+        ret2 += target(elem);
+    }
+
+    result += ret2;
 
     // Does not work
 
@@ -186,9 +200,14 @@ int main(int argv, char **argc)
     // int* arrp = arr;
     // return target(arrp[0]);
 
-    vec<int> v3;
-    v3[0] = source();
-    other_target(v3);
+    vec<int> v4;
+    v4[0] = source();
+    target(v4);
+
+    vec<int> v5 = vec<int>();
+    v5[0] = source();
+    v5.push_back(source());
+    result += target(v5[0]);
 
     // with_field f;
     // f.field = source();
