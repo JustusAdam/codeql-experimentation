@@ -1,18 +1,14 @@
-int source()
+void target()
 {
-    return 2;
 }
 
-int target(int source)
+template <typename T>
+void entry(T &t)
 {
-    return source;
+    target();
 }
 
-template<typename T>
-void entry() {
-    target(source());
+void entry2()
+{
+    target();
 }
-
-// void entry() {
-//     target(source());
-// }
