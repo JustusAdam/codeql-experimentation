@@ -61,6 +61,22 @@ module SinkFlowConfig implements DataFlow::ConfigSig {
       c = rhs.asExpr() and
       c.getAnArgument() = lhs.asExpr()
     )
+    or
+    exists(FieldAccess f, Expr qual |
+      f.getTarget().getDeclaringType().getName() = "LectureQuestionSubmission" and
+      rhs.asExpr() = f and
+      (lhs.asExpr() = qual or lhs.asIndirectExpr() = qual) and
+      qual = f.getQualifier()
+    )
+    or
+    exists(Call c, Expr qual, Function op |
+      c.getTarget() = op and
+      op.getName() = "operator->" and
+      c.getQualifier() = qual and
+      op.getDeclaringType().(UserType).getSimpleName() = "Form" and
+      qual = lhs.asIndirectExpr() and
+      c = rhs.asExpr()
+    )
   }
 }
 
@@ -71,17 +87,40 @@ predicate is_scope(DataFlow::Node n) { email_call().getArgument(0) = n.asExpr() 
 predicate is_external_sink(DataFlow::Node n) { email_call().getArgument(3) = n.asIndirectExpr() }
 
 predicate is_sensitive_node(DataFlow::Node n) {
-  contains_sensitive_type(n.getType())
-  // exists(VariableAccess va |
-  //   va.getTarget().getName() = "apikey" and
-  //   n.asExpr() = va and
-  //   va.getEnclosingFunction().getName() = "questions_submit"
-  // )
+  //contains_sensitive_type(n.getType())
+  exists(VariableAccess va |
+    va.getTarget().getName() = "data" and
+    n.asIndirectExpr() = va and
+    va.getEnclosingFunction().getName() = "questions_submit"
+  )
 }
 
-from DataFlow::Node src, DataFlow::Node sink
-where is_sensitive_node(src) and is_external_sink(sink) and SinkFlow::flow(src, sink)
-select src, sink
+// Check the additional flow steps
+// from DataFlow::Node lhs, DataFlow::Node rhs, Call c, Expr qual, Function op
+// where
+//   c.getTarget() = op and
+//   op.getName() = "operator->" and
+//   c.getQualifier() = qual and
+//   op.getDeclaringType().(UserType).getSimpleName() = "Form" and
+//   qual = lhs.asIndirectExpr() and
+//   c = rhs.asExpr() and
+//   c.getEnclosingFunction().getName() = "questions_submit"
+// select lhs, rhs, lhs.getLocation()
+//
+// who is sensitive
+// from DataFlow::Node n
+// where is_sensitive_node(n)
+// select n, n.getLocation().getStartLine()
+//
+// query tests
+from DataFlow::Node src, DataFlow::Node sink, Expr sink_e
+where
+  is_sensitive_node(src) and
+  // is_external_sink(sink) and
+  (sink.asExpr() = sink_e or sink.asIndirectExpr() = sink_e) and
+  sink_e.getEnclosingFunction().getName() = "questions_submit" and
+  SinkFlow::flow(src, sink)
+select src, sink, sink.getLocation().getStartLine()
 //
 // from FieldAccess f
 // where
