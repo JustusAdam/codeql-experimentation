@@ -10,6 +10,12 @@ __attribute__((noinline)) int target(int source)
     return source;
 }
 
+template <typename T>
+__attribute__((noinline)) int target(std::vector<T> &source)
+{
+    return source.size();
+}
+
 int main(int argv, char **argc)
 {
     int result = 0;
@@ -72,6 +78,10 @@ int main(int argv, char **argc)
         ret1 += target(elem);
     }
     result += ret1;
+
+    std::vector<int> v5;
+    v5.push_back(source());
+    result += target(v5);
 
     // Arrays do work, even with a reassigned pointer
 
