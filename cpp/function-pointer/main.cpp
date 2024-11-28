@@ -1,7 +1,11 @@
-
 int source()
 {
     return 2;
+}
+
+int target(int source)
+{
+    return source;
 }
 
 int a_function()
@@ -9,9 +13,9 @@ int a_function()
     return source();
 }
 
-int target(int source)
+int b_function()
 {
-    return source;
+    return 0;
 }
 
 int main(int argv, char **argc)
@@ -21,6 +25,13 @@ int main(int argv, char **argc)
     fptr = a_function;
 
     target(fptr());
+
+    int (*fptr2)();
+    int (**fptr2_ptr)() = &fptr2;
+    fptr2 = b_function;
+    *fptr2_ptr = a_function;
+
+    target(fptr2());
 
     return 0;
 }

@@ -91,5 +91,15 @@ int main(int argv, char **argc)
     int *arrp = arr;
     result += target(arrp[0]);
 
+    std::vector<int> v6;
+    auto *elem6 = &v6[0];
+    *elem6 = source();
+    result += target(v6);
+
+    std::vector<int> v7;
+    auto *elem7 = &v7[0];
+    *elem7 = source();
+    result += target(v7[0]);
+
     return result;
 }
