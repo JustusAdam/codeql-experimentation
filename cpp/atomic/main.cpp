@@ -271,19 +271,19 @@ public:
             resource->check_required_props(store);
         }
 
-        // if (validate_rights)
-        // {
-        this->modify_parent(resource, store);
-
-        if (!check_write(*store, *resource, signer))
+        if (validate_rights)
         {
-            throw std::runtime_error(
-                "Agent " + signer + " is not permitted to edit " + subject +
-                ". There should be a write right referring to this Agent in this Resource or its parent.");
-        }
+            this->modify_parent(resource, store);
 
-        // check_write2(*store, *resource, signer);
-        // }
+            if (!check_write(*store, *resource, signer))
+            {
+                throw std::runtime_error(
+                    "Agent " + signer + " is not permitted to edit " + subject +
+                    ". There should be a write right referring to this Agent in this Resource or its parent.");
+            }
+
+            // check_write2(*store, *resource, signer);
+        }
 
         if (destroy && *destroy)
         {
@@ -311,7 +311,6 @@ private:
         }
     }
 
-    // Other methods like into_resource, check_write would need to be implemented
     std::shared_ptr<Resource> into_resource(std::shared_ptr<Storelike> &store)
     {
         std::string commit_subject;
