@@ -222,5 +222,11 @@ int main(int argv, char **argc)
     // f2.assign(source());
     // other_target(f2);
 
+    int *a = new int[1];
+    int *b = a;
+    a[0] = source();
+    target(b[0]);
+    target(a[0]);
+
     return result;
 }
