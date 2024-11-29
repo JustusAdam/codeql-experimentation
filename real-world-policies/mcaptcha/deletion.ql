@@ -2,9 +2,22 @@ import cpp
 import semmle.code.cpp.dataflow.new.TaintTracking
 
 module FlowConfig implements DataFlow::ConfigSig {
-  predicate isSink(DataFlow::Node n) { any() }
+  predicate isSink(DataFlow::Node n) {
+    any()
+    //is_delete(n.asExpr()) or is_delete(n.asIndirectExpr())
+  }
 
-  predicate isSource(DataFlow::Node n) { any() }
+  predicate isSource(DataFlow::Node n) {
+    any()
+    // exists(Type t, Expr e |
+    //   is_sensitive(t) and
+    //   e.getType().refersTo(t) and
+    //   (
+    //     e = n.asExpr() or
+    //     e = n.asIndirectExpr()
+    //   )
+    // )
+  }
 
   predicate isAdditionalFlowStep(DataFlow::Node n1, DataFlow::Node n2) {
     exists(Call c, Function f |
@@ -44,7 +57,6 @@ where
 select t, retrieval, retrieval.getLocation().getStartLine(), delete,
   delete.getLocation().getStartLine()
 //
-// sensitive types
 // from Type t
 // where is_sensitive(t)
 // select t
