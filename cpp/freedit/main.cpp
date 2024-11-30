@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <thread>
 #include <iostream>
+#include <memory>
 
 #include "flib/flib.hpp"
 
