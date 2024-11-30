@@ -1,6 +1,7 @@
 #include <string>
 #include <optional>
 #include <memory>
+#include <future>
 
 using namespace std;
 
@@ -156,6 +157,52 @@ public:
 
         // Check registration application
         checkRegistrationApplication(site, local_user_view, context->getDBConnection());
+
+        // Return the JWT
+        LoginResponse response;
+        response.jwt = generateJWT(local_user_view.local_user.id, *context);
+        return response;
+    }
+
+    LoginResponse perform_async(shared_ptr<LemmyContext> context)
+    {
+        // Fetch the LocalUserView from the database
+        LocalUserView local_user_view = std::async(std::launch::async, [&]()
+                                                   { return context->getDBConnection().findUserByEmailOrName(this->username_or_email); })
+                                            .get();
+
+        // Verify the password
+        bool valid = bcrypt::verify(this->password, local_user_view.local_user.password_encrypted);
+        if (!valid)
+        {
+            throw LemmyError("password_incorrect");
+        }
+
+        // Check if user is valid
+        if (local_user_view.person.banned ||
+            (local_user_view.person.ban_expires && *local_user_view.person.ban_expires > time(nullptr)) ||
+            local_user_view.person.deleted)
+        {
+            throw LemmyError("user_not_valid");
+            // printf("user_not_valid\n");
+        }
+
+        // check_user_valid(local_user_view);
+
+        Site site = std::async(std::launch::async, [&]()
+                               { return context->getDBConnection().readLocalSite(); })
+                        .get();
+        // Site site = getSite(*context);
+
+        if (site.require_email_verification && !local_user_view.local_user.email_verified)
+        {
+            throw LemmyError("email_not_verified");
+        }
+
+        // Check registration application
+        std::async(std::launch::async, [&]()
+                   { checkRegistrationApplication(site, local_user_view, context->getDBConnection()); })
+            .get();
 
         // Return the JWT
         LoginResponse response;
