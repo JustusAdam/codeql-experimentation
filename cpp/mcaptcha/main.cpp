@@ -164,9 +164,9 @@ HttpResponse delete_account_async(Identity &id, web::Json<Password> &payload, Ap
 
     if (Config::verify(hash, payload->password))
     {
-        auto hash = std::async([&]()
-                               { return data.db.get_password(username); })
-                        .get();
+        std::async([&]()
+                   { return data.db.delete_user(username); })
+            .get();
 
         id.forget();
         return HttpResponse::Ok();
