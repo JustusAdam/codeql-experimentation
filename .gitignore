@@ -37,3 +37,4 @@ _codeql_detected_source_root
 qdb/
 target/
 .vscode/settings.json
+/results/

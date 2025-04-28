@@ -1,0 +1,71 @@
+[application.freedit]
+libs = ["flib"]
+path = "cpp/freedit"
+
+[application.mcaptcha]
+libs = ["third_party"]
+path = "cpp/mcaptcha"
+
+[application.websubmit]
+path = "cpp/websubmit/cpp"
+libs = ["third_party"]
+
+[application.atomic]
+path = "cpp/atomic"
+
+[application.lemmy]
+path = "cpp/lemmy"
+
+[application.plume]
+libs = ["plib"]
+path = "cpp/plume"
+
+[[experiment]]
+application = "freedit"
+policy = "real-world-policies/freedit/expire.ql"
+expected = "expected/freedit/expire.txt"
+
+[[experiment]]
+application = "freedit"
+policy = "real-world-policies/freedit/store.ql"
+expected = "expected/freedit/store.txt"
+
+[[experiment]]
+application = "mcaptcha"
+policy = "real-world-policies/mcaptcha/deletion.ql"
+expected = "expected/mcaptcha/deletion.txt"
+
+[[experiment]]
+application = "mcaptcha"
+policy = "real-world-policies/mcaptcha/limited-collection.ql"
+expected = "expected/mcaptcha/limited-collection.txt"
+
+[[experiment]]
+application = "websubmit"
+policy = "real-world-policies/websubmit/deletion.ql"
+expected = "expected/websubmit/deletion.txt"
+
+[[experiment]]
+application = "websubmit"
+policy = "real-world-policies/websubmit/disclosure.ql"
+expected = "expected/websubmit/disclosure.txt"
+
+[[experiment]]
+application = "websubmit"
+policy = "real-world-policies/websubmit/scoped-storage.ql"
+expected = "expected/websubmit/scoped-storage.txt"
+
+[[experiment]]
+application = "atomic"
+policy = "real-world-policies/atomic.ql"
+expected = "expected/atomic.txt"
+
+[[experiment]]
+application = "lemmy"
+policy = "real-world-policies/lemmy-instance.ql"
+expected = "expected/lemmy-instance.txt"
+
+[[experiment]]
+application = "plume"
+policy = "real-world-policies/plume-data-deletion.ql"
+expected = "expected/plume-data-deletion.txt"
