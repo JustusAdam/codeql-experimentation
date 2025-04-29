@@ -39,11 +39,6 @@ expected = "expected/mcaptcha/deletion.txt"
 application = "mcaptcha"
 policy = "real-world-policies/mcaptcha/limited-collection.ql"
 expected = "expected/mcaptcha/limited-collection.txt"
-comment = """
-The policy checks for the presence of a function call that authorizes the collection of
-data and a control flow influence of its return value on the collection. The CodeQL output 
-is expected to contain that function call.
-"""
 
 [[experiment]]
 application = "websubmit"

@@ -1,0 +1,5 @@
+| user_data |        source         |  sink  |   col3   | col4 |
++-----------+-----------------------+--------+----------+------+
+| Comment   | call to listByAuthor  | * ...  | main.cpp |  123 |
+| Blog      | call to findForAuthor | * ...  | main.cpp |   38 |
+| Post      | call to getPost       | ** ... | main.cpp |   81 |

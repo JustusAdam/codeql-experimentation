@@ -63,7 +63,7 @@ module AllFlowsConfig implements DataFlow::ConfigSig {
 
   predicate isAdditionalFlowStep(DataFlow::Node lhs, DataFlow::Node rhs) {
     exists(ConstructorCall c, Expr argument |
-      c.getDeclaringType().getName() = "Value" and
+      c.getTarget().getDeclaringType().getName() = "Value" and
       lhs.asExpr() = c and
       argument = c.getArgument(0) and
       (rhs.asExpr() = argument or rhs.asIndirectExpr() = argument)

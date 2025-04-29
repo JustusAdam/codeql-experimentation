@@ -20,7 +20,6 @@ predicate is_user_data(Type outer) {
 
 predicate is_user_data_direct(Type t) {
   t.getName() = "Comment" or
-  t.getName() = "User" or
   t.getName() = "Post" or
   t.getName() = "Blog"
 }
@@ -93,6 +92,7 @@ predicate is_delete_2(DataFlow::Node e) {
   )
 }
 
+// First query attempt
 // from DataFlow::Node src, DataFlow::Node snk, Function f, Type t
 // where
 //   is_delete(snk) and
@@ -103,8 +103,9 @@ predicate is_delete_2(DataFlow::Node e) {
 //   src.getEnclosingCallable().getName() = "deleteUserController"
 // select t, src, snk
 //
-// This tests that actually the database calls don't flow to the delete.
-from Type user_data, FunctionCall f, DataFlow::Node source, DataFlow::Node sink
+// Second attempt with marked database methods
+from Type user_data, FunctionCall f, DataFlow::Node source, DataFlow::Node sink,
+Location sink_loc
 where
   is_user_data_direct(user_data) and
   source.getEnclosingCallable().getName() = "deleteUserController" and
@@ -112,6 +113,7 @@ where
   source.getType().refersTo(user_data) and
   is_db_method(f.getTarget()) and
   AllTaint::flow(source, sink) and
-  is_delete_2(sink)
+  is_delete_2(sink) and 
+  sink.getLocation() = sink_loc
 //sink.getLocation().getFile().getBaseName() = "main.cpp"
-select source, sink
+select user_data, source, sink, sink_loc.getFile().getBaseName(), sink_loc.getStartLine()

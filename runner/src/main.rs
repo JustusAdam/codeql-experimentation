@@ -9,6 +9,7 @@ use std::{
 use anyhow::Context;
 use clap::Parser;
 use indicatif::ProgressBar;
+use tracing::warn;
 
 #[derive(Parser)]
 pub struct Args {
@@ -118,7 +119,19 @@ impl Run<'_> {
         if !executor.args.create_expected {
             let expected = std::fs::read_to_string(&self.experiment.expected).unwrap();
             let actual = std::fs::read_to_string(&codeql_out).unwrap();
-            assert_eq!(expected, actual);
+            if expected != actual {
+                executor.progress.suspend(|| {
+                    tracing::error!(
+                        id = self.id,
+                        output = %codeql_out.display(),
+                        expected = %self.experiment.expected.display(),
+                        application = self.experiment.application,
+                        policy = %self.experiment.policy.display(),
+                        "Failed to match expected output",
+                    )
+                });
+                executor.failures += 1;
+            }
             if !executor.args.keep_intermediates {
                 std::fs::remove_file(&codeql_out).unwrap();
             }
@@ -183,6 +196,7 @@ pub struct Executor {
     pub results_dir: PathBuf,
     pub intermediates: PathBuf,
     pub codeql_command: PathBuf,
+    pub failures: u32,
 }
 
 impl Executor {
@@ -206,12 +220,20 @@ impl Executor {
         let stderr = File::create(results_dir.join("stderr.log")).unwrap();
         let intermediates = results_dir.join("tmp");
         std::fs::create_dir_all(&intermediates).unwrap();
+        let cmd = &args.codeql_command;
+        let codeql_command = match cmd.canonicalize() {
+            Ok(path) => path,
+            Err(_) => {
+                warn!(
+                    "Failed to canonicalize the codeql command '{}', assuming it is installed.",
+                    cmd.display()
+                );
+                cmd.clone()
+            }
+        };
+
         Self {
-            codeql_command: args
-                .codeql_command
-                .canonicalize()
-                .with_context(|| format!("Canonicalizing {}", args.codeql_command.display()))
-                .unwrap(),
+            codeql_command,
             args: Box::leak(Box::new(args)),
             config: Box::leak(Box::new(config)),
             progress,
@@ -230,13 +252,17 @@ impl Executor {
         }
         write!(self.stdout, "Running: {:?}\n", command).unwrap();
         write!(self.stderr, "Running: {:?}\n", command).unwrap();
-        let status = command.status().unwrap();
+        let status = command
+            .status()
+            .with_context(|| format!("Executing {command:?}"))
+            .unwrap();
         assert!(status.success(), "Failed to run command {:?}", command);
     }
 }
 
 fn main() {
     let args = Args::parse();
+    tracing_subscriber::fmt().init();
     let mut executor = Executor::new(args);
 
     let runs = executor.config.iter_runs().collect::<Vec<_>>();
@@ -246,5 +272,15 @@ fn main() {
 
     for run in runs {
         run.execute(&mut executor);
+    }
+
+    if executor.failures > 0 {
+        executor
+            .progress
+            .finish_with_message(format!("{} failures", executor.failures));
+    } else {
+        executor
+            .progress
+            .finish_with_message("All runs completed successfully");
     }
 }

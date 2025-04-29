@@ -1,0 +1,4 @@
+|       db_access       |                                                       col1                                                        |
++-----------------------+-------------------------------------------------------------------------------------------------------------------+
+| call to readLocalSite | file:///home/justus/research/paralegal-osdi-2025-artifact/codeql-experimentation/cpp/lemmy/main.cpp:118:38:118:50 |
+| call to readLocalSite | file:///home/justus/research/paralegal-osdi-2025-artifact/codeql-experimentation/cpp/lemmy/main.cpp:193:68:193:80 |

@@ -1,0 +1,3 @@
+|    t     | retrieval | col2 |  delete  | col4 |
++----------+-----------+------+----------+------+
+| Identity | id        |  145 | username |  150 |

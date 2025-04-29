@@ -116,7 +116,7 @@ predicate is_sensitive_node(DataFlow::Node n) {
 from DataFlow::Node src, DataFlow::Node sink, Expr sink_e
 where
   is_sensitive_node(src) and
-  // is_external_sink(sink) and
+  is_external_sink(sink) and
   (sink.asExpr() = sink_e or sink.asIndirectExpr() = sink_e) and
   sink_e.getEnclosingFunction().getName() = "questions_submit" and
   SinkFlow::flow(src, sink)

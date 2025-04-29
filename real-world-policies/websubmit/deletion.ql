@@ -61,13 +61,25 @@ module FlowNodesFromDeleteConfig implements DataFlow::ConfigSig {
 
 module FlowNodesFromDelete = TaintTracking::Global<FlowNodesFromDeleteConfig>;
 
-from Expr delete_arg, Expr target
+// from Expr delete_arg, Expr target
+// where
+//   DeleteTaint::flow(data, target) and
+//   is_sensitive(data.getType()) and
+//   is_delete(delete_arg)
+// select delete_arg, target
+
+from Type t, Expr retrieval, Expr delete, DataFlow::Node retrieval_node, DataFlow::Node delete_node
 where
-  // DeleteTaint::flow(data, target) and
-  // is_sensitive(data.getType()) and
-  is_delete(delete_arg) and
-  pointer(delete_arg, target)
-select delete_arg, target
+  is_sensitive(t) and
+  is_delete(delete) and
+  retrieval.getType().refersTo(t) and
+  retrieval_node.asExpr() = retrieval and
+  delete_node.asExpr() = delete and
+  DeleteTaint::flow(retrieval_node, delete_node) and
+  retrieval.getLocation().getFile().getBaseName() = "main.cpp"
+select t, retrieval, retrieval.getLocation().getStartLine(), delete,
+  delete.getLocation().getStartLine()
+
 //
 // Testing that taint does not cross the `Value` constructor
 //
