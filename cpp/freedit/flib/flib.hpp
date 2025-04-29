@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <sstream>
 #include <cctype>
+#include <memory>
+#include <cstring>
 
 std::vector<uint8_t> u32_to_ivec(uint32_t value);
 uint32_t u8_slice_to_u32(const std::vector<uint8_t> &slice);

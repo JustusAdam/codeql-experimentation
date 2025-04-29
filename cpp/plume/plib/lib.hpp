@@ -8,7 +8,7 @@ typedef uint32_t RowId;
 
 class Value
 {
-    std::variant<std::string, int, nullptr_t> v;
+    std::variant<std::string, int, std::nullptr_t> v;
 
 public:
     Value(const std::string &s);

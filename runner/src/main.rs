@@ -231,7 +231,7 @@ impl Executor {
         write!(self.stdout, "Running: {:?}\n", command).unwrap();
         write!(self.stderr, "Running: {:?}\n", command).unwrap();
         let status = command.status().unwrap();
-        assert!(status.success());
+        assert!(status.success(), "Failed to run command {:?}", command);
     }
 }
 

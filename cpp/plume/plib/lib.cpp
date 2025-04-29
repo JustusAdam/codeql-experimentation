@@ -25,7 +25,7 @@ std::string Value::getString() const
 }
 bool Value::isNull() const
 {
-    return std::holds_alternative<nullptr_t>(v);
+    return std::holds_alternative<std::nullptr_t>(v);
 }
 
 Connection::Connection() : id(1) {}
