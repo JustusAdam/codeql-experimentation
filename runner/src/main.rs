@@ -241,6 +241,7 @@ impl Executor {
             stderr,
             results_dir,
             intermediates,
+            failures: 0,
         }
     }
 
