@@ -131,8 +131,7 @@ impl Run<'_> {
                     )
                 });
                 executor.failures += 1;
-            }
-            if !executor.args.keep_intermediates {
+            } else if !executor.args.keep_intermediates {
                 std::fs::remove_file(&codeql_out).unwrap();
             }
         }
